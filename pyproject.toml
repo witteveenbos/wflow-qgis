@@ -8,28 +8,18 @@ version = "0.0.0"
 description = "Add a short description here!"
 authors = ["Peter van Tol <peter.van.tol@witteveenbos.com>"]
 license = "Proprietary - Witteveen+Bos"
-readme = "README.md"
+readme = "README.rst"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.10 <3.14"
+python = "^3.10.0 <3.14"
+hydromt-wflow = "^0.7.0"
+numpy = "^1.23.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.15.10"
 pytest = "^7.2.1"
 
 [[tool.poetry.source]]
-name = "wb_pypi"
-url = "https://pypi.wbad.witteveenbos.com/simple/"
-priority = "primary"
-
-[[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
-
-[tool.pyscaffold]
-# PyScaffold's parameters when the project was created.
-# This will be used when updating. Do not change!
-version = "4.5"
-package = "wflow_qgis"
-extensions = ["wb_empty"]

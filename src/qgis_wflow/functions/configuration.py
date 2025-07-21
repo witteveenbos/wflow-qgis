@@ -44,7 +44,7 @@ def install_hydromt_wflow():
     env = os.environ.copy()
     env["PATH"] = ";".join(sys.path)
     # Install the package using pip
-    res = subprocess.run(["python", "-m", "pip", "install", "hydromt_wflow", "pywinpty"], env=env, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    res = subprocess.run(["python", "-m", "pip", "install", "-U", "hydromt_wflow<1.0", "pywinpty"], env=env, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     if res.returncode != 0:
         print(res.stdout)
         print(res.stderr)

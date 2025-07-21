@@ -41,7 +41,7 @@ class HydroMTInstallationProgress(QDialog, INSTALLATION_PROGRESS_FORM_CLASS):
         env = QProcessEnvironment.systemEnvironment()
         env.insert("PATH", ";".join(sys.path))
         self._process.setProcessEnvironment(env)
-        self._process.start("python", ["-m", "pip", "install", "-U", "hydromt_wflow"])
+        self._process.start("python", ["-m", "pip", "install", "-U", "hydromt_wflow<1.0"])
         # - Update label
         self.lblInstallationStatus.setText("Installing hydromt_wflow package...")
         # - Update buttons

@@ -18,7 +18,7 @@ Installation
 Obtaining the HydroMT plugin (development version)
 --------------------------------------------------
 
-The QGis-WFlow plugin is under active development and is not yet available in the QGIS plugin repository. To install the plugin, you can clone
+The QGis-Wflow plugin is under active development and is not yet available in the QGIS plugin repository. To install the plugin, you can clone
 the repository from GitHub and install it manually. To do this, follow the steps below:
 
 - Clone the repository from GitHub by running the following command in your terminal:
@@ -27,12 +27,12 @@ the repository from GitHub and install it manually. To do this, follow the steps
   ``python setup.py install``
 - Restart QGis after the installation is complete.
 
-This will install the QGis-WFlow plugin in the correct folder (``%USERPROFILE%\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\QGis-WFlow``)
+This will install the QGis-Wflow plugin in the correct folder (``%USERPROFILE%\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\QGis-Wflow``)
 on your system.
 
 .. info::
     You can also install the plugin ``Plugin Reloader`` from the `QGIS plugin repository <https://plugins.qgis.org/plugins/plugin_reloade>`_. This plugin
-    allows you to reload the QGis-WFlow plugin. This is useful when you are developing the plugin and want to see the changes you made. See
+    allows you to reload the QGis-Wflow plugin. This is useful when you are developing the plugin and want to see the changes you made. See
     `Experimental Plugins  <https://www.qgistutorials.com/en/docs/using_plugins.html#experimental-plugins>`_ for more details on how to install
     this plugin.
 
@@ -44,7 +44,7 @@ After installing the plugin, you need to configure the plugin to set the correct
 `hydromt-wflow` and its dependencies. To do this, follow the steps below:
 
 - Open QGIS and navigate to the ``Plugins`` menu.
-- Click on the ``WFlow`` sub-menu.
+- Click on the ``Wflow`` sub-menu.
 - Select the ``Configuration`` option.
 
 In the configuration window, you can set the path to your ``wflow`` installation and install or update the ``hydromt-wflow`` package and its

@@ -1,74 +1,61 @@
 
-from time import sleep
+import re
 import subprocess
-from qgis.PyQt.QtCore import QProcess
+import typing
 
 from . import AlgorithmBase
 from ..functions.configuration import wflow_path
 
-from qgis.core import (QgsProcessing,
-                       QgsFeatureSink,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
+from qgis.core import (
+    QgsProcessingContext,
+    QgsProcessingFeedback,
+    QgsProcessingParameterFile,
+)
 
 
 class RunWflowAlgorithm(AlgorithmBase):
 
-    __NAME__ = "run_wflow"
-    __GROUP__ = "WFlow"
+    __NAME__ = "Run calculation"
+    __GROUP__ = "Wflow"
 
     INPUT = "INPUT"
 
+    PROGRESS_REGEX = re.compile(r"Progress:\s+(\d+)")
+
     def init_algorithm(self, config):
-        pass
 
         # We add the input vector features source. It can have any kind of
         # geometry.
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
-                self.INPUT,
-                self.tr('Input layer'),
-                [QgsProcessing.TypeVectorAnyGeometry],
-                optional=True
+            QgsProcessingParameterFile(
+                name=self.INPUT,
+                description=self.tr('Input .toml-file of wflow'),
+                extension="toml"
             )
         )
     
-    def process_algorithm(self, parameters, context, feedback):
+    def process_algorithm(
+            self,
+            parameters: typing.Dict[str, typing.Any],
+            context: QgsProcessingContext,
+            feedback: typing.Optional[QgsProcessingFeedback]
+        ) -> typing.Dict[str, typing.Any]:
         
-        from winpty import PtyProcess
-        import re
-        import unicodedata
-        import threading
-        from queue import Queue
-
-        def remove_control_characters(s):
-            return "".join(ch for ch in s if unicodedata.category(ch)[0]!="C")
-        
-        PROGRESS_REGEX = re.compile(r"Progress:\s+(\d+)")
-        
-        proc = PtyProcess.spawn([
-            wflow_path(),
-            r"C:\Users\tolp2\Documents\git\wflow-qgis\data\wflow_Ilek\wflow_sbm.toml"
-        ])
-        while proc.isalive():
-            # Listen whether user wants to cancel the process
-            if feedback.isCanceled():
-                proc.terminate()
-                feedback.reportError("Process was cancelled.")
-                break
-            # Give feedback to the user
-            q = Queue()
-            t = threading.Thread(target=lambda q: q.put(proc.readline()), args=(q, ))
-            t.start()
-            t.join(timeout=1)
-
-            line = remove_control_characters(q.get())
-            match = PROGRESS_REGEX.search(line)
-            if match:
-                feedback.setProgress(int(match.group(1)))
-            else:
-                feedback.pushInfo(line)
+        # Run the calculation in a subprocess
+        process = subprocess.Popen(
+            [wflow_path(), parameters[self.INPUT]],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True,
+            encoding='utf-8',
+            errors='replace'
+        )
+        while (realtime_output := process.stdout.readline()) != '' or process.poll() is None:
+            if realtime_output:
+                match = self.PROGRESS_REGEX.search(realtime_output)
+                if match:
+                    feedback.setProgress(int(match.group(1)))
+                else:
+                    feedback.pushInfo(realtime_output.strip())
 
         return {}

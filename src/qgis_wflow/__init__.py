@@ -52,8 +52,8 @@ class Plugin():
         QgsApplication.processingRegistry().addProvider(self.provider)
         
         # Dialogs / UI-based
-        icon = QIcon(str(Path(__file__).parent / "resources" / "hydromt-icon.png"))
-        self.menu = self.iface.pluginMenu().addMenu(icon, self.tr("&WFlow"))
+        icon = QIcon(str(Path(__file__).parent / "resources" / "wflow_logo.png"))
+        self.menu = self.iface.pluginMenu().addMenu(icon, self.tr("&wflow"))
         # - config
         icon_gears = QIcon(str(Path(__file__).parent / "resources" / "settings-gears.png"))
         self.action_configure_plugin = QAction(icon_gears, self.tr("Configuration"))
@@ -61,7 +61,7 @@ class Plugin():
         self.menu.addAction(self.action_configure_plugin)
         self.menu.addSeparator()
 
-        self.action_run_wflow = QAction(icon_gears, self.tr("Run WFlow"))
+        self.action_run_wflow = QAction(icon_gears, self.tr("Run wflow"))
         self.action_run_wflow.triggered.connect(self.runWFlowDialog)
         self.menu.addAction(self.action_run_wflow)
 

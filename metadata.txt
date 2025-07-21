@@ -1,6 +1,6 @@
 [general]
-name=QGis-WFlow
-description=With the QGis-WFlow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
+name=QGis-Wflow
+description=With the QGis-Wflow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
 author=Peter van Tol
 email=Peter.van.Tol@witteveenbos.com
 
@@ -10,11 +10,11 @@ experimental=True
 homepage=http://bugs
 repository=http://repo
 tracker=http://repo/issues
-about=With the QGis-WFlow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
-icon=resources/hydromt-icon.png
+about=With the QGis-Wflow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
+icon=resources/wflow_logo.png
 
 changelog=
     Version 0.1:
     * Initial version;
-    * Installation of HydrMT-WFlow in QGis Python environment;
-    * Configuration of WFlow-executable.
+    * Installation of HydrMT-Wflow in QGis Python environment;
+    * Configuration of Wflow-executable.

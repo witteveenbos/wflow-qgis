@@ -1,4 +1,5 @@
 import re
+import shutil
 import subprocess
 import typing
 from pathlib import Path
@@ -86,14 +87,17 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
         reservoirs_gpkg = base_path / "shapes" / "update_reservoirs.gpkg"
         if not reservoirs_gpkg.parent.exists():
             reservoirs_gpkg.parent.mkdir(parents=True, exist_ok=True)
-        # processing.run(
-        #     "native:savefeatures",
-        #     {
-        #         'INPUT': parameters[self.RESERVOIR_VECTOR],
-        #         'OUTPUT': reservoirs_gpkg
-        #     }
-        # )
 
+        # feedback.pushInfo(f"Copying {reservoirs_vector_path} to {base_path / 'shapes' / f'{reservoirs_vector_path.stem}_update_landuse{reservoirs_vector_path.suffix}'}")
+        # shutil.copy2(reservoirs_vector_path, reservoirs_gpkg)
+        processing.run(
+            "native:savefeatures",
+            {
+                'INPUT': parameters[self.RESERVOIR_VECTOR],
+                'OUTPUT': str(reservoirs_gpkg)
+            }
+        )
+        feedback.pushInfo(f"Saved reservoirs to {reservoirs_gpkg}")
         # Create the required files
         RESERVOIR_FN = "hydro_reservoirs" # TODO: parameterize this
         ini_file = base_path / "build_update_reservoirs.ini"

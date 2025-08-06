@@ -1,5 +1,4 @@
 import re
-import shutil
 import subprocess
 import typing
 from pathlib import Path
@@ -81,15 +80,13 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
         # Get the base path of the updated wflow model
         base_path = Path(parameters[self.TARGET]).parent
 
-        # Create a CSV file with the gauges
-        reservoirs_vector = self.parameterAsSource(parameters, self.RESERVOIR_VECTOR, context)
-        # - print the gauges to a CSV file
+        
+        # create the file for the reservoirs geopackage and ensure the directory exists
         reservoirs_gpkg = base_path / "shapes" / "update_reservoirs.gpkg"
         if not reservoirs_gpkg.parent.exists():
             reservoirs_gpkg.parent.mkdir(parents=True, exist_ok=True)
 
-        # feedback.pushInfo(f"Copying {reservoirs_vector_path} to {base_path / 'shapes' / f'{reservoirs_vector_path.stem}_update_landuse{reservoirs_vector_path.suffix}'}")
-        # shutil.copy2(reservoirs_vector_path, reservoirs_gpkg)
+        # use the native processing algorithm to save the vector layer with resevoirs to a geopackage
         processing.run(
             "native:savefeatures",
             {
@@ -99,6 +96,7 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
         )
         feedback.pushInfo(f"Saved reservoirs to {reservoirs_gpkg}")
         # Create the required files
+        
         RESERVOIR_FN = "hydro_reservoirs" # TODO: parameterize this
         ini_file = base_path / "build_update_reservoirs.ini"
         with open(ini_file, "w") as f:

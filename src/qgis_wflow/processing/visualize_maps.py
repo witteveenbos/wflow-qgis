@@ -13,8 +13,16 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsProject,
+    QgsProcessingParameterBoolean,
 )
 from qgis.utils import iface
+
+LULC_MAPS = [
+    "globcover",
+    "esa_worldcover",
+    "vito",
+    "corine"
+]
 
 
 STATIC_MAPS = [
@@ -106,6 +114,8 @@ class LoadLayersAlgorithm(AlgorithmBase):
     INPUT = "INPUT"
     STATIC_MAPS = "STATIC_MAPS"
     STATIC_GEOMS = "STATIC_GEOMS"
+    APPLY_STYLING = "APPLY_STYLING"
+    LULC_MAPPING = "LULC_MAPPING"
 
     def flags(self):
         # NOTE: possibly breaking change in version 3.40
@@ -151,6 +161,25 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 ],
                 allowMultiple=True,
                 optional=True,
+            )
+        )
+        # Let the user select whether to apply styling to the imported layers
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.APPLY_STYLING,
+                description=self.tr("Apply styling to imported layers"),
+                defaultValue=False
+            )
+        )
+
+        # Let the user select the LULC mapping to apply to the land use layer
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                name=self.LULC_MAPPING,
+                description=self.tr("LULC mapping to apply"),
+                options=LULC_MAPS,
+                defaultValue=None,
+                optional=True
             )
         )
 
@@ -226,7 +255,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             feedback.pushInfo(f"Importing static maps from {path_static_maps}")
             # - create a group in the layer tree for the static maps
             insertion_point = iface.layerTreeInsertionPoint().group
-            group = insertion_point.addGroup("Static maps")
+            group_maps = insertion_point.addGroup("Static maps")
             # - create the layers
             for map_id in parameters[self.STATIC_MAPS]:
                 # NOTE: the layers are added using the QgsProject instance. This is required to set
@@ -239,7 +268,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 )
                 layer.setName(STATIC_MAPS[map_id])
                 QgsProject.instance().addMapLayer(layer, False)
-                group.addLayer(layer)
+                group_maps.addLayer(layer)
 
         # Import static geoms
         path_static_geoms = Path(parameters[self.INPUT]).parent / "staticgeoms"
@@ -247,7 +276,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             feedback.pushInfo(f"Importing static geoms from {path_static_geoms}")
             # - create a group in the layer tree for the static geometries
             insertion_point = iface.layerTreeInsertionPoint().group
-            group = insertion_point.addGroup("Static geometries")
+            group_geoms = insertion_point.addGroup("Static geometries")
             # - get the entries, convert from index to name and add named items to the list
             static_geoms = [
                 STATIC_GEOMS[geom_id] for geom_id in parameters[self.STATIC_GEOMS]
@@ -282,8 +311,22 @@ class LoadLayersAlgorithm(AlgorithmBase):
                     self.set_gauge_action(layer)
 
                 QgsProject.instance().addMapLayer(layer, False)
-                group.addLayer(layer)
-
+                group_geoms.addLayer(layer)
+            
+            # Apply styling to the static geometries if requested
+            if parameters[self.APPLY_STYLING]:
+                current_dir = Path(__file__).parents[1].resolve()
+                feedback.pushInfo(str(current_dir))
+                for layer in group_maps.findLayers():
+                    feedback.pushInfo(f"Considering {layer.name()}")
+                    if layer.name() in DEFAULT_STATIC_MAPS:
+                        if layer.name() == "wflow_landuse":
+                            style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"
+                        else:
+                            style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
+                        if style_path.exists():
+                            layer.layer().loadNamedStyle(str(style_path))
+                            layer.layer().triggerRepaint()
         return {}
 
 

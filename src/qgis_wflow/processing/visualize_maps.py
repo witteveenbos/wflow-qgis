@@ -316,9 +316,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             # Apply styling to the static geometries if requested
             if parameters[self.APPLY_STYLING]:
                 current_dir = Path(__file__).parents[1].resolve()
-                feedback.pushInfo(str(current_dir))
                 for layer in group_maps.findLayers():
-                    feedback.pushInfo(f"Considering {layer.name()}")
                     if layer.name() in DEFAULT_STATIC_MAPS:
                         if layer.name() == "wflow_landuse":
                             style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"

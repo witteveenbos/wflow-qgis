@@ -75,6 +75,14 @@ STATIC_MAPS = [
     "G_Cfmax",
     "G_SIfrac",
     "G_TT",
+    "ResDemand",
+    "ResMaxRelease",
+    "ResMaxVolume",
+    "ResSimpleArea",
+    "ResTargetFullFrac",
+    "ResTargetMinFrac",
+    "wflow_reservoirareas",
+    "wflow_reservoirlocs",
 ]
 DEFAULT_STATIC_MAPS = [
     "wflow_subcatch",
@@ -86,7 +94,7 @@ DEFAULT_STATIC_MAPS = [
 ]
 
 
-STATIC_GEOMS = ["basins", "basins_highres", "gauges", "region", "rivers", "subcatch"]
+STATIC_GEOMS = ["basins", "basins_highres", "gauges", "region", "rivers", "subcatch", "resevoirs"]
 DEFAULT_STATIC_GEOMS = ["basins", "gauges", "rivers", "subcatch"]
 
 

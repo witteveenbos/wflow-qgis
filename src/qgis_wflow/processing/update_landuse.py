@@ -61,12 +61,14 @@ LULC_META = {
 
 class UpdateLandUseAlgorithm(AlgorithmBase):
 
-    __NAME__ = "Land_use"
+    __NAME__ = "Change landuse"
     __GROUP__ = "Update model"
 
     BASE = "BASE"
     INPUT = "INPUT"
+    # which area of the raster will be updated
     LAND_USE_VECTOR = "LAND_USE_VECTOR"
+    # what should be the new value of the cells that are updated
     LAND_USE_FIELD = "LAND_USE_FIELD"
     LULC_MAP = "LULC_MAP"
     TARGET = "TARGET"

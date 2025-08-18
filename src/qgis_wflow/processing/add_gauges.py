@@ -18,7 +18,7 @@ from . import AlgorithmBase
 
 class AddGaugesAlgorithm(AlgorithmBase):
 
-    __NAME__ = "Add gauges"
+    __NAME__ = "Add guage locations"
     __GROUP__ = "Update model"
 
     BASE = "BASE"

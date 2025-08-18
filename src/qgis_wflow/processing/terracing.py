@@ -26,7 +26,7 @@ from . import AlgorithmBase
 
 class ApplyTerracingAlgorithm(AlgorithmBase):
 
-    __NAME__ = "Terracing"
+    __NAME__ = "Add terracing"
     __GROUP__ = "Update model (experimental)"
 
     BASE = "BASE"
@@ -134,6 +134,16 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
                             f.write('path_static = "staticmaps_with_terracing.nc"\n')
                         elif line.strip().startswith("casename ="):
                             f.write('casename = "wflow_sbm_with_terracing"\n')
+                        elif line.strip().startswith("dir_output ="):
+                            old_folder = line.split("=")[1].strip().strip('"')
+                            old_folder_path = target_folder / old_folder
+                            # Delete the old folder if it exists
+                            if old_folder_path.exists() and old_folder_path.is_dir():
+                                shutil.rmtree(old_folder_path)
+                            # Create the new folder
+                            new_folder_path = target_folder / "run_with_terracing"
+                            new_folder_path.mkdir(parents=True, exist_ok=True)
+                            f.write('dir_output = "run_with_terracing"\n')
                         else:
                             f.write(line)
 
@@ -167,7 +177,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         # hardcoded that the target rasterpath is put into staticmaps.nc":Slope 
         feedback.pushInfo(f"Base raster path: {base_raster_path}")
         orig_nc = target_folder / "staticmaps.nc"
-        output_nc = target_folder / "staticmaps_with_terracing.tif"
+        output_nc = target_folder / "Slope_with_terracing.tif"
         if parameters[self.TERRACING_VECTOR] is not None:
                algresult = processing.run(
                     "gdal:rastercalculator", 

@@ -232,6 +232,12 @@ class LoadLayersAlgorithm(AlgorithmBase):
             )
         )
 
+    def apply_styling(layer_group, present_styles):
+        """
+        Apply styling to the layers in the group that correspond to the list of present styles.
+        The styles are expected to be in the resources/styles directory with the same names as the layer.
+        """
+
     def process_algorithm(
         self,
         parameters: typing.Dict[str, typing.Any],
@@ -315,16 +321,29 @@ class LoadLayersAlgorithm(AlgorithmBase):
             
             # Apply styling to the static geometries if requested
             if parameters[self.APPLY_STYLING]:
+                # get directory of the plugin gives -> ../src/qgis_wflow/
                 current_dir = Path(__file__).parents[1].resolve()
+                # get standard layers to style
                 for layer in group_maps.findLayers():
                     if layer.name() in DEFAULT_STATIC_MAPS:
+                        #special case for land use layer
                         if layer.name() == "wflow_landuse":
                             style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"
                         else:
+                            # else the qmd file has the same name as the layer
                             style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
                         if style_path.exists():
+                            #apply the style to the layer only if the path to the qmd file exists
                             layer.layer().loadNamedStyle(str(style_path))
                             layer.layer().triggerRepaint()
+
+                # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
+                for layer in group_geoms.findLayers():
+                    if layer.name() in DEFAULT_STATIC_GEOMS:
+                        style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
+                    if style_path.exists():
+                        layer.layer().loadNamedStyle(str(style_path))
+                        layer.layer().triggerRepaint()
         return {}
 
 

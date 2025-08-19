@@ -121,6 +121,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         feedback.pushInfo(f"Copied folder {input_folder} to {target_folder}")
 
         # Find and adjust the .toml file in the target folder
+        # Add new output folder and delete the old one.
         for file in target_folder.iterdir():
             if file.suffix == ".toml":
                 new_file = file.with_name(f"{file.stem}_with_terracing{file.suffix}") 

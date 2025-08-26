@@ -13,17 +13,24 @@ from qgis.core import (
     QgsRasterLayer,
     QgsVectorLayer,
     QgsProject,
+    QgsProcessingParameterBoolean,
 )
 from qgis.utils import iface
+
+LULC_MAPS = [
+    "globcover",
+    "esa_worldcover",
+    "vito",
+    "corine"
+]
 
 
 STATIC_MAPS = [
     "wflow_ldd",
-    "wflow_subcatch",
     "wflow_uparea",
     "wflow_streamorder",
     "wflow_dem",
-    "Slope",
+    
     "wflow_river",
     "wflow_riverlength",
     "RiverSlope",
@@ -39,7 +46,7 @@ STATIC_MAPS = [
     "Swood",
     "WaterFrac",
     "alpha_h1",
-    "LAI",
+    
     "thetaS",
     "thetaR",
     "SoilThickness",
@@ -58,7 +65,10 @@ STATIC_MAPS = [
     "M_original",
     "M",
     "f",
-    "wflow_soil",
+    "wflow_soil", 
+    "wflow_subcatch",
+    "Slope",
+    "LAI",
     "wflow_gauges",
     "KsatHorFrac",
     "Cfmax",
@@ -84,18 +94,19 @@ STATIC_MAPS = [
     "wflow_reservoirareas",
     "wflow_reservoirlocs",
 ]
+# dem landuse soil, subcatch slope LAI volgorde
 DEFAULT_STATIC_MAPS = [
-    "wflow_subcatch",
     "wflow_dem",
-    "Slope",
     "wflow_landuse",
-    "LAI",
     "wflow_soil",
+    "wflow_subcatch",
+    "Slope",
+    "LAI",
 ]
 
-
-STATIC_GEOMS = ["basins", "basins_highres", "gauges", "region", "rivers", "subcatch", "resevoirs"]
-DEFAULT_STATIC_GEOMS = ["basins", "gauges", "rivers", "subcatch"]
+# gauges (allemaal), rivers, reservoirs, subcatch, basins, highres, region
+STATIC_GEOMS = ["gauges","rivers", "reservoirs", "subcatch", "basins", "basins_highres",  "region"]
+DEFAULT_STATIC_GEOMS = ["gauges","rivers","subcatch","basins"]
 
 
 class LoadLayersAlgorithm(AlgorithmBase):
@@ -106,6 +117,8 @@ class LoadLayersAlgorithm(AlgorithmBase):
     INPUT = "INPUT"
     STATIC_MAPS = "STATIC_MAPS"
     STATIC_GEOMS = "STATIC_GEOMS"
+    APPLY_STYLING = "APPLY_STYLING"
+    LULC_MAPPING = "LULC_MAPPING"
 
     def flags(self):
         # NOTE: possibly breaking change in version 3.40
@@ -151,6 +164,25 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 ],
                 allowMultiple=True,
                 optional=True,
+            )
+        )
+        # Let the user select whether to apply styling to the imported layers
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.APPLY_STYLING,
+                description=self.tr("Apply styling to imported layers"),
+                defaultValue=False
+            )
+        )
+
+        # Let the user select the LULC mapping to apply to the land use layer
+        self.addParameter(
+            QgsProcessingParameterEnum(
+                name=self.LULC_MAPPING,
+                description=self.tr("LULC mapping to apply"),
+                options=LULC_MAPS,
+                defaultValue=None,
+                optional=True
             )
         )
 
@@ -203,6 +235,12 @@ class LoadLayersAlgorithm(AlgorithmBase):
             )
         )
 
+    def apply_styling(layer_group, present_styles):
+        """
+        Apply styling to the layers in the group that correspond to the list of present styles.
+        The styles are expected to be in the resources/styles directory with the same names as the layer.
+        """
+
     def process_algorithm(
         self,
         parameters: typing.Dict[str, typing.Any],
@@ -226,7 +264,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             feedback.pushInfo(f"Importing static maps from {path_static_maps}")
             # - create a group in the layer tree for the static maps
             insertion_point = iface.layerTreeInsertionPoint().group
-            group = insertion_point.addGroup("Static maps")
+            group_maps = insertion_point.addGroup("Static maps")
             # - create the layers
             for map_id in parameters[self.STATIC_MAPS]:
                 # NOTE: the layers are added using the QgsProject instance. This is required to set
@@ -239,7 +277,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 )
                 layer.setName(STATIC_MAPS[map_id])
                 QgsProject.instance().addMapLayer(layer, False)
-                group.addLayer(layer)
+                group_maps.addLayer(layer)
 
         # Import static geoms
         path_static_geoms = Path(parameters[self.INPUT]).parent / "staticgeoms"
@@ -247,7 +285,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             feedback.pushInfo(f"Importing static geoms from {path_static_geoms}")
             # - create a group in the layer tree for the static geometries
             insertion_point = iface.layerTreeInsertionPoint().group
-            group = insertion_point.addGroup("Static geometries")
+            group_geoms = insertion_point.addGroup("Static geometries")
             # - get the entries, convert from index to name and add named items to the list
             static_geoms = [
                 STATIC_GEOMS[geom_id] for geom_id in parameters[self.STATIC_GEOMS]
@@ -282,8 +320,34 @@ class LoadLayersAlgorithm(AlgorithmBase):
                     self.set_gauge_action(layer)
 
                 QgsProject.instance().addMapLayer(layer, False)
-                group.addLayer(layer)
-
+                group_geoms.addLayer(layer)
+            
+            # Apply styling to the static geometries if checkbox is clicked
+            if parameters[self.APPLY_STYLING]:
+                # get directory of the plugin gives -> ../src/qgis_wflow/
+                current_dir = Path(__file__).parents[1].resolve()
+                
+                # get standard layers to style
+                for layer in group_maps.findLayers():
+                    if layer.name() in DEFAULT_STATIC_MAPS:
+                        #special case for land use layer
+                        if layer.name() == "wflow_landuse":
+                            style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"
+                        else:
+                            # else the qmd file has the same name as the layer
+                            style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
+                        #apply the style to the layer only if the path to the qmd file exists
+                        if style_path.exists():
+                            layer.layer().loadNamedStyle(str(style_path))  
+                            layer.layer().triggerRepaint()
+                            
+                # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
+                for layer in group_geoms.findLayers():
+                    if layer.name() in DEFAULT_STATIC_GEOMS:
+                        style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
+                    if style_path.exists():
+                        layer.layer().loadNamedStyle(str(style_path))
+                        layer.layer().triggerRepaint()
         return {}
 
 

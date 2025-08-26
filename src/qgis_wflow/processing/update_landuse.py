@@ -62,7 +62,7 @@ LULC_META = {
 class UpdateLandUseAlgorithm(AlgorithmBase):
 
     __NAME__ = "Change landuse"
-    __GROUP__ = "Update model"
+    __GROUP__ = "Add NBS"
 
     BASE = "BASE"
     INPUT = "INPUT"

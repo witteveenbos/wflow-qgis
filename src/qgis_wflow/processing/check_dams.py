@@ -27,7 +27,7 @@ from . import AlgorithmBase
 class ApplyTerracingAlgorithm(AlgorithmBase):
 
     __NAME__ = "Add check dams"
-    __GROUP__ = "Update model (experimental)"
+    __GROUP__ = "Add NBS (experimental)"
 
     BASE = "BASE"
     INPUT = "INPUT"

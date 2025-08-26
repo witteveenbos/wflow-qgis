@@ -20,7 +20,7 @@ from . import AlgorithmBase
 class UpdateReservoirsAlgorithm(AlgorithmBase):
 
     __NAME__ = "Add reservoirs"
-    __GROUP__ = "Update model"
+    __GROUP__ = "Add NBS"
 
     BASE = "BASE"
     INPUT = "INPUT"

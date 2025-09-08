@@ -10,7 +10,40 @@ from qgis.gui import QgisInterface
 
 from .processing import AutoProcessingProvider
 
+class WFlowAction(object):
+    def __init__(
+            self,
+            iface,
+            name,
+            icon,
+            dialog,
+            add_to_menu=True,
+            add_to_toolbar=True):
+        self.iface = iface
+        self.name = name
+        self.icon = icon
+        self.dialog = dialog
+        self.add_to_menu = add_to_menu
+        self.add_to_toolbar = add_to_toolbar
 
+    def add_action(self):
+        """
+        Add action to toolbar/menu
+        :rtype: QAction
+        """
+        icon = QIcon(os.path.join(os.path.dirname(__file__), 'resources', self.icon))
+        action = QAction(icon, self.name)
+        action.triggered.connect(self.dialog)
+        
+        if self.add_to_toolbar:
+            # Adds plugin icon to Plugins toolbar
+            self.iface.addToolBarIcon(action)
+        if self.add_to_menu:
+            self.iface.addPluginToMenu(
+                self.menu,
+                action)
+        return action
+    
 class Plugin():
     '''
     Minimal implementation of a Plugin for QGis. Responsible for adding and removing
@@ -26,6 +59,7 @@ class Plugin():
         self.provider = AutoProcessingProvider()
         # Dialogs / UI-based
         self.iface = iface
+        self.actions = []
 
         self.menu = None
         if QSettings().value('locale/overrideFlag', type=bool):
@@ -65,6 +99,41 @@ class Plugin():
         self.action_run_wflow.triggered.connect(self.runWFlowDialog)
         self.menu.addAction(self.action_run_wflow)
 
+        # Diaglogs -> toolbar
+        self.actions.append(WFlowAction(
+                self.iface,
+                self.tr("Create Reservoir"),
+                r"reservoir-icon.png",
+                self.runCreateReservoirDialog,
+                add_to_menu=False,
+                add_to_toolbar=True
+            ).add_action())
+        self.actions.append(WFlowAction(
+                self.iface,
+                self.tr("Create Terracing"),
+                r"terracing-icon.png",
+                self.runAddTerracingDialog,
+                add_to_menu=False,
+                add_to_toolbar=True
+            ).add_action())
+        self.actions.append(WFlowAction(
+                self.iface,
+                self.tr("Create Check Dams"),
+                r"dams-icon.png",
+                self.runAddCheckDamsDialog,
+                add_to_menu=False,
+                add_to_toolbar=True
+            ).add_action())
+        self.actions.append(WFlowAction(
+                self.iface,
+                self.tr("Change landuse"),
+                r"landuse-icon.png",
+                self.runChangeLanduseDialog,
+                add_to_menu=False,
+                add_to_toolbar=True
+            ).add_action())
+
+
 
     def openConfigWindow(self):
         """Open the configuration dialog."""
@@ -79,8 +148,27 @@ class Plugin():
         dlg = RunWFlowProgress(self.iface.mainWindow())
         dlg.exec()
 
+    def runCreateReservoirDialog(self):
+        from .create_reservoir.gui.create_reservoir_dialog import CreateReservoir
+        dlg = CreateReservoir(self.iface.mainWindow())
+        dlg.exec()
 
+    def runAddTerracingDialog(self):
+        from .create_reservoir.gui.add_terracing_dialog import AddTerracing
+        dlg = AddTerracing(self.iface.mainWindow())
+        dlg.exec()
 
+    def runAddCheckDamsDialog(self):
+        from .create_reservoir.gui.add_check_dams_dialog import AddCheckDams
+        dlg = AddCheckDams(self.iface.mainWindow())
+        dlg.exec()
+
+    def runChangeLanduseDialog(self):
+        from .create_reservoir.gui.change_landuse_dialog import ChangeLanduse
+        dlg = ChangeLanduse(self.iface.mainWindow())
+        dlg.exec()
+
+    
         # self.toolButton = QToolButton()
         # self.toolButton.setMenu(QMenu())
         # self.toolButton.setToolButtonStyle(Settings.toolButtonStyle())
@@ -152,6 +240,8 @@ class Plugin():
         QgsApplication.processingRegistry().removeProvider(self.provider)
         # Dialogs / UI-based
         self.iface.pluginMenu().removeAction(self.menu.menuAction())
+        for action in self.actions:
+            self.iface.removeToolBarIcon(action)
 
 
     def tr(self, message: str) -> str:

@@ -105,7 +105,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
                 f.write(f"\n{gauge_fid},{gauge[parameters[self.GAUGE_NAME_FIELD]]},{gauge_geom.x()},{gauge_geom.y()}")
 
         # Create the required files
-        GAUGE_FN = "kazhydromet_gauges" # TODO: parameterize this
+        GAUGE_FN = "gauges" # TODO: parameterize this
         ini_file = base_path / "build_update_gauges.ini"
         with open(ini_file, "w") as f:
             f.write("[setup_gauges]\n")

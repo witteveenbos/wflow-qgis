@@ -115,7 +115,7 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
                 name=self.LAND_USE_FIELD,
                 description=self.tr('Field with land use values'),
                 parentLayerParameterName=self.LAND_USE_VECTOR,
-                type=QgsProcessingParameterField.Numeric,
+                # type=QgsProcessingParameterField.Numeric,
                 optional=True
             )
         )
@@ -149,7 +149,6 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
         
         # Get the base path of the updated wflow model
         base_path = Path(parameters[self.TARGET]).parent
-
         # Copy the input file to the target location
         base_raster = self.parameterAsRasterLayer(parameters, self.BASE, context)
         base_raster_path = Path(base_raster.dataProvider().dataSourceUri())

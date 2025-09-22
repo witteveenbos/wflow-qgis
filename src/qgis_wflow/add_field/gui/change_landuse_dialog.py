@@ -174,7 +174,7 @@ class ChangeLanduse(QDialog):
         landuse_layer.startEditing()
         provider.addAttributes([
             QgsField("fid", QMetaType.Int),
-            QgsField("change_to", QMetaType.QString),
+            QgsField("land use value", QMetaType.Int),
             ])
         landuse_layer.commitChanges()
         
@@ -191,7 +191,7 @@ class ChangeLanduse(QDialog):
         QgsProject.instance().addMapLayer(written_layer)
         # Mapping of the legend values (landuse names) is only present in QGIS
         # The field value saved in the geopackage is the number corresponding to the class. 
-        idx_change = written_layer.fields().indexFromName('change_to')
+        idx_change = written_layer.fields().indexFromName('land use value')
         mapping = self.ui.comboBox.currentText()
         written_layer.setEditorWidgetSetup(idx_change, QgsEditorWidgetSetup('ValueMap', self.mapping_options[mapping]))
         self.accept()  # This closes the dialog

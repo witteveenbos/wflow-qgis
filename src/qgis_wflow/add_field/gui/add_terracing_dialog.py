@@ -72,7 +72,8 @@ class AddTerracing(QDialog):
             QgsVectorFileWriter.SaveVectorOptions()
         )
         # Add the written layer to the project
-        written_layer = QgsVectorLayer(file_path, "Terracing Layer", "ogr")
+        layer_name = os.path.splitext(os.path.basename(file_path))[0]
+        written_layer = QgsVectorLayer(file_path, layer_name, "ogr")
 
         QgsProject.instance().addMapLayer(written_layer)
         self.accept()  # This closes the dialog

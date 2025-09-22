@@ -149,22 +149,22 @@ class Plugin():
         dlg.exec()
 
     def runCreateReservoirDialog(self):
-        from .create_reservoir.gui.create_reservoir_dialog import CreateReservoir
+        from .add_field.gui.create_reservoir_dialog import CreateReservoir
         dlg = CreateReservoir(self.iface.mainWindow())
         dlg.exec()
 
     def runAddTerracingDialog(self):
-        from .create_reservoir.gui.add_terracing_dialog import AddTerracing
+        from .add_field.gui.add_terracing_dialog import AddTerracing
         dlg = AddTerracing(self.iface.mainWindow())
         dlg.exec()
 
     def runAddCheckDamsDialog(self):
-        from .create_reservoir.gui.add_check_dams_dialog import AddCheckDams
+        from .add_field.gui.add_check_dams_dialog import AddCheckDams
         dlg = AddCheckDams(self.iface.mainWindow())
         dlg.exec()
 
     def runChangeLanduseDialog(self):
-        from .create_reservoir.gui.change_landuse_dialog import ChangeLanduse
+        from .add_field.gui.change_landuse_dialog import ChangeLanduse
         dlg = ChangeLanduse(self.iface.mainWindow())
         dlg.exec()
 

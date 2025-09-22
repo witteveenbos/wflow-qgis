@@ -1,6 +1,6 @@
 [general]
-name=QGis-Wflow
-description=With the QGis-Wflow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
+name=wflow NBS design tool
+description=With the wflow NBS design tool plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
 author=Peter van Tol
 email=Peter.van.Tol@witteveenbos.com
 
@@ -10,7 +10,7 @@ experimental=True
 homepage=http://bugs
 repository=http://repo
 tracker=http://repo/issues
-about=With the QGis-Wflow plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
+about=With the wflow NBS design tool plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
 icon=resources/wflow_logo.png
 
 changelog=

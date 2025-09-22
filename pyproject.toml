@@ -3,7 +3,7 @@
 #   https://python-poetry.org/docs/pyproject/
 # The version entry must be present, however it is further ignored by the build
 # process; the version is automatically set by using ``poetry-dynamic-versioning``.
-name = "qgis-wflow"
+name = "qgis_wflow"
 version = "0.0.0"
 description = "Add a short description here!"
 authors = ["Peter van Tol <peter.van.tol@witteveenbos.com>"]

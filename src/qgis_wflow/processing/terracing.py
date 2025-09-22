@@ -44,8 +44,8 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterFile(
                 name=self.INPUT,
-                description=self.tr('Input folder of wflow'),
-                behavior=QgsProcessingParameterFile.Folder
+                description=self.tr('Input .toml of wflow'),
+                extension="toml"
             )
         )
 
@@ -110,7 +110,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         
 
         # Get the input and target folder from the parameters
-        input_folder = Path(parameters[self.INPUT])
+        input_folder = Path(parameters[self.INPUT]).parent
         target_folder = Path(parameters[self.TARGET])
 
         # Copy the entire input folder into the target folder

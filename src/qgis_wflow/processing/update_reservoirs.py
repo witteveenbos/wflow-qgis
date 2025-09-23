@@ -8,9 +8,8 @@ from qgis.core import (
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterField,
     QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination,
+    QgsProcessingParameterFolderDestination,
 )
 from qgis import processing
 
@@ -51,13 +50,11 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
             )
         )
 
-        # For now we just add a file destination parameter. Can be nicer when users can select a destination folder
-        # and the name of the file is automatically generated (or the name is a parameter as well).
+        # Destination folder for the updated wflow model
         self.addParameter(
-            QgsProcessingParameterFileDestination(
+            QgsProcessingParameterFolderDestination(
                 self.TARGET,
-                self.tr('Target toml-file for wflow (should be placed in an empty folder)'),
-                fileFilter="*.toml"
+                self.tr('Target folder for the terraced wflow model')
             )
         )
 
@@ -78,8 +75,7 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
             return {}
         
         # Get the base path of the updated wflow model
-        base_path = Path(parameters[self.TARGET]).parent
-
+        base_path = Path(parameters[self.TARGET])
         
         # create the file for the reservoirs geopackage and ensure the directory exists
         reservoirs_gpkg = base_path / "shapes" / "update_reservoirs.gpkg"

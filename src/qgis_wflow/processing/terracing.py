@@ -1,6 +1,5 @@
 import re
 import shutil
-import subprocess
 import typing
 from pathlib import Path
 import xarray as xr
@@ -11,17 +10,15 @@ from qgis.core import (
     QgsProcessing,
     QgsProcessingContext,
     QgsProcessingFeedback,
-    QgsProcessingParameterEnum,
     QgsProcessingParameterNumber,
     QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterField,
     QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination,
     QgsProcessingParameterFolderDestination,
     QgsProcessingParameterRasterLayer,
 )
 
 from . import AlgorithmBase
+from ..functions.file_utils import delete_folder
 
 
 class ApplyTerracingAlgorithm(AlgorithmBase):
@@ -114,8 +111,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         target_folder = Path(parameters[self.TARGET])
 
         # Copy the entire input folder into the target folder
-        if target_folder.exists():
-            shutil.rmtree(target_folder)
+        delete_folder(target_folder)
         shutil.copytree(input_folder, target_folder)
 
         feedback.pushInfo(f"Copied folder {input_folder} to {target_folder}")
@@ -139,8 +135,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
                             old_folder = line.split("=")[1].strip().strip('"')
                             old_folder_path = target_folder / old_folder
                             # Delete the old folder if it exists
-                            if old_folder_path.exists() and old_folder_path.is_dir():
-                                shutil.rmtree(old_folder_path)
+                            delete_folder(old_folder_path)
                             # Create the new folder
                             new_folder_path = target_folder / "run_with_terracing"
                             new_folder_path.mkdir(parents=True, exist_ok=True)
@@ -203,5 +198,6 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         out_nc = target_folder / "staticmaps_with_terracing.nc"
         ds.to_netcdf(out_nc)
         ds.close()
+        new_slope.close()
 
         return {}

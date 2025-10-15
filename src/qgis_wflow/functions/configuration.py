@@ -49,7 +49,3 @@ def install_hydromt_wflow():
         print(res.stdout)
         print(res.stderr)
         raise RuntimeError("Failed to install hydromt_wflow")
-
-
-    
-    

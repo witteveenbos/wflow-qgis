@@ -293,6 +293,9 @@ class LoadLayersAlgorithm(AlgorithmBase):
                     f'NETCDF:"{str(path_static_maps)}":{STATIC_MAPS[map_id]}',
                     STATIC_MAPS[map_id],
                 )
+                crs = layer.crs()
+                crs.createFromId(4326)
+                layer.setCrs(crs)
                 layer.setName(STATIC_MAPS[map_id])
                 QgsProject.instance().addMapLayer(layer, False)
                 group_maps.addLayer(layer)

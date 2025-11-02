@@ -60,6 +60,7 @@ class Plugin():
         # Dialogs / UI-based
         self.iface = iface
         self.actions = []
+        self.results_viewer = None
 
         self.menu = None
         if QSettings().value('locale/overrideFlag', type=bool):
@@ -132,8 +133,14 @@ class Plugin():
                 add_to_menu=False,
                 add_to_toolbar=True
             ).add_action())
-
-
+        self.actions.append(WFlowAction(
+                self.iface,
+                self.tr("Result viewer"),
+                r"landuse-icon.png",
+                self.openResultViewer,
+                add_to_menu=False,
+                add_to_toolbar=True
+            ).add_action())
 
     def openConfigWindow(self):
         """Open the configuration dialog."""
@@ -141,12 +148,18 @@ class Plugin():
         dlg = ConfigurationDialog(self.iface.mainWindow())
         dlg.exec()
 
-
     def runWFlowDialog(self):
         """Open the dialog to run WFlow (DEBUG)."""
         from .menu_actions.run_wflow import RunWFlowProgress
         dlg = RunWFlowProgress(self.iface.mainWindow())
         dlg.exec()
+    
+    def openResultViewer(self):
+        """Open the dialog to run WFlow (DEBUG)."""
+        from .result_viewer import ResultViewer
+        if self.results_viewer is None:
+            self.results_viewer = ResultViewer()
+        self.results_viewer.show()
 
     def runCreateReservoirDialog(self):
         from .add_field.gui.create_reservoir_dialog import CreateReservoir
@@ -167,6 +180,8 @@ class Plugin():
         from .add_field.gui.change_landuse_dialog import ChangeLanduse
         dlg = ChangeLanduse(self.iface.mainWindow())
         dlg.exec()
+
+    
 
     
         # self.toolButton = QToolButton()

@@ -109,6 +109,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
         ini_file = base_path / "build_update_gauges.ini"
         with open(ini_file, "w") as f:
             f.write("[setup_gauges]\n")
+            f.write("index_col       = fid")
             f.write(f"gauges_fn        = {GAUGE_FN}\n")  
             f.write("snap_to_river   = True\n")  # TODO: parameterize this
             f.write("derive_subcatch = True\n")  # TODO: parameterize this

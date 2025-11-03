@@ -11,20 +11,21 @@ from qgis.gui import QgisInterface
 from .processing import AutoProcessingProvider
 
 class WFlowAction(object):
+
     def __init__(
             self,
             iface,
             name,
             icon,
             dialog,
-            add_to_menu=True,
-            add_to_toolbar=True):
+            menu=None,
+            toolbar=None):
         self.iface = iface
         self.name = name
         self.icon = icon
         self.dialog = dialog
-        self.add_to_menu = add_to_menu
-        self.add_to_toolbar = add_to_toolbar
+        self.menu = menu
+        self.toolbar = toolbar
 
     def add_action(self):
         """
@@ -35,13 +36,11 @@ class WFlowAction(object):
         action = QAction(icon, self.name)
         action.triggered.connect(self.dialog)
         
-        if self.add_to_toolbar:
+        if self.toolbar is not None:
             # Adds plugin icon to Plugins toolbar
-            self.iface.addToolBarIcon(action)
-        if self.add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.toolbar.addAction(action)
+        if self.menu is not None:
+            self.iface.addPluginToMenu(self.menu, action)
         return action
     
 class Plugin():
@@ -89,6 +88,7 @@ class Plugin():
         # Dialogs / UI-based
         icon = QIcon(str(Path(__file__).parent / "resources" / "wflow_logo.png"))
         self.menu = self.iface.pluginMenu().addMenu(icon, self.tr("&wflow"))
+        self.toolbar = self.iface.addToolBar("wflow")
         # - config
         icon_gears = QIcon(str(Path(__file__).parent / "resources" / "settings-gears.png"))
         self.action_configure_plugin = QAction(icon_gears, self.tr("Configuration"))
@@ -106,40 +106,36 @@ class Plugin():
                 self.tr("Create Reservoir"),
                 r"reservoir-icon.png",
                 self.runCreateReservoirDialog,
-                add_to_menu=False,
-                add_to_toolbar=True
+                toolbar=self.toolbar,
             ).add_action())
         self.actions.append(WFlowAction(
                 self.iface,
                 self.tr("Create Terracing"),
                 r"terracing-icon.png",
                 self.runAddTerracingDialog,
-                add_to_menu=False,
-                add_to_toolbar=True
+                toolbar=self.toolbar,
             ).add_action())
         self.actions.append(WFlowAction(
                 self.iface,
                 self.tr("Create Check Dams"),
                 r"dams-icon.png",
                 self.runAddCheckDamsDialog,
-                add_to_menu=False,
-                add_to_toolbar=True
+                toolbar=self.toolbar,
             ).add_action())
         self.actions.append(WFlowAction(
                 self.iface,
                 self.tr("Change landuse"),
                 r"landuse-icon.png",
                 self.runChangeLanduseDialog,
-                add_to_menu=False,
-                add_to_toolbar=True
+                toolbar=self.toolbar,
             ).add_action())
+        self.toolbar.addSeparator()
         self.actions.append(WFlowAction(
                 self.iface,
                 self.tr("Result viewer"),
-                r"landuse-icon.png",
+                r"result-viewer.png",
                 self.openResultViewer,
-                add_to_menu=False,
-                add_to_toolbar=True
+                toolbar=self.toolbar,
             ).add_action())
 
     def openConfigWindow(self):

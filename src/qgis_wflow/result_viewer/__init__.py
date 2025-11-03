@@ -5,8 +5,9 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.offline as po
+import plotly.express as px
 from qgis.core import QgsProject, QgsWkbTypes
-from qgis.PyQt import QtCore, uic
+from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon, QStandardItem, QStandardItemModel
 from qgis.PyQt.QtWidgets import QAbstractItemView, QWidget
 import xarray as xr
@@ -141,13 +142,16 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
             return
 
         plot_data = []
-        for gauge in selected_features:
+        colors = px.colors.qualitative.Plotly
+        for index, gauge in enumerate(selected_features):
+            color = colors[index % len(colors)]
             # Plot the main data
             trace = go.Scatter(
                 x=self.data['time'],
                 y=self.data[f'Q_{gauge["fid"]}'],
                 mode='lines',
                 name=gauge['name'],
+                line=dict(color=color),
                 legendgroup="Base"
             )
             plot_data.append(trace)
@@ -158,7 +162,10 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
                     y=self.compare_data[f'Q_{gauge["fid"]}'],
                     mode='lines',
                     name=f'{gauge["name"]} (compare)',
-                    line=dict(dash='dash'),
+                    line=dict(
+                        dash='dash',
+                        color=color
+                    ),
                     legendgroup="Compare"
                 )
                 plot_data.append(trace_compare)

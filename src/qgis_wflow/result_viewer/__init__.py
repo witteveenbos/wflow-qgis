@@ -156,10 +156,21 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
             )
             plot_data.append(trace)
             if self.checkCompareWith.isChecked() and self.compare_data is not None:
+                # Find matching features in compare layer within 100m buffer
+                matching_gauge = None
+                current_geom = gauge.geometry()
+                compare_layer = self.comboLayersCompareWith.itemData(self.comboLayersCompareWith.currentIndex())
+                if compare_layer:
+                    for compare_feature in compare_layer.getFeatures():
+                        if current_geom.distance(compare_feature.geometry()) <= 100:
+                            matching_gauge = compare_feature
+                            break
+                if matching_gauge is None:
+                    continue
                 # Plot the comparison data if needed
                 trace_compare = go.Scatter(
                     x=self.compare_data['time'],
-                    y=self.compare_data[f'Q_{gauge["fid"]}'],
+                    y=self.compare_data[f'Q_{matching_gauge["fid"]}'],
                     mode='lines',
                     name=f'{gauge["name"]} (compare)',
                     line=dict(

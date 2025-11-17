@@ -7,14 +7,16 @@ email=Peter.van.Tol@witteveenbos.com
 version=0.1
 qgisMinimumVersion=3.36
 experimental=True
-homepage=http://bugs
-repository=http://repo
-tracker=http://repo/issues
+homepage=https://www.deltares.nl/en/software-and-data/products/wflow-catchment-hydrology-modelling
+repository=https://github.com/witteveenbos/wflow-qgis
+tracker=https://github.com/witteveenbos/wflow-qgis/issues
 about=With the wflow NBS design tool plugin, users can easily benefit from the rich set of tools of the Hydro-MT package to build and update WFlow models from available GIS-data. This pluing leverages the functionality of QGis with HydroMT.
 icon=resources/wflow_logo.png
 
 changelog=
-    Version 0.1:
+    Version 1.0.1:
+    * Standardized input and output for NBS algortihms
+    * Updated result viewer with multi-selection for layers
+    * Fixed the add gauges function and added extra options 'snap-to-river' and 'derive_subcatch'
+    Version 1.0.0:
     * Initial version;
-    * Installation of HydrMT-Wflow in QGis Python environment;
-    * Configuration of Wflow-executable.

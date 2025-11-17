@@ -10,7 +10,7 @@ from qgis.core import (
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterField,
     QgsProcessingParameterFile,
-    QgsProcessingParameterFileDestination,
+    QgsProcessingParameterFolderDestination,
 )
 
 from . import AlgorithmBase
@@ -59,13 +59,11 @@ class AddGaugesAlgorithm(AlgorithmBase):
             )
         )
 
-        # For now we just add a file destination parameter. Can be nicer when users can select a destination folder
-        # and the name of the file is automatically generated (or the name is a parameter as well).
+        # Destination folder for the updated wflow model
         self.addParameter(
-            QgsProcessingParameterFileDestination(
+            QgsProcessingParameterFolderDestination(
                 self.TARGET,
-                self.tr('Target toml-file for wflow (should be placed in an empty folder)'),
-                fileFilter="*.toml"
+                self.tr('Target folder for the wflow model with the gauges')
             )
         )
 
@@ -86,7 +84,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
             return {}
         
         # Get the base path of the updated wflow model
-        base_path = Path(parameters[self.TARGET]).parent
+        base_path = Path(parameters[self.TARGET])
 
         # Create a CSV file with the gauges
         # - load data from the vector layer

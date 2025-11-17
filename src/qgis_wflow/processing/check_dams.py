@@ -76,7 +76,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterFolderDestination(
                 self.TARGET,
-                self.tr('Target folder for the terraced wflow model')
+                self.tr('Target folder for the wflow model with check dams')
             )
         )
 

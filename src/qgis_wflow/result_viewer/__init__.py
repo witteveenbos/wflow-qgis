@@ -7,17 +7,18 @@ import plotly.graph_objs as go
 import plotly.offline as po
 import plotly.express as px
 from qgis.core import QgsProject, QgsWkbTypes
-from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon, QStandardItem, QStandardItemModel
 from qgis.PyQt.QtWidgets import QAbstractItemView, QWidget
 import xarray as xr
 
-RESULTVIEWER_FORM_CLASS = uic.loadUiType(
-    os.path.join(os.path.dirname(__file__), "ui", "result_viewer.ui")
-)[0]
+# RESULTVIEWER_FORM_CLASS = uic.loadUiType(
+#     os.path.join(os.path.dirname(__file__), "ui", "result_viewer.ui")
+# )[0]
+
+from .ui.result_viewer_ui import ResultViewerUI
 
 
-class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
+class ResultViewer(QWidget, ResultViewerUI):
     """Dialog to show the results of a wflow simulation."""
 
     def __init__(self):
@@ -29,8 +30,8 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
         self.listGauges.setModel(self.gauges_list_model)
         self.listGauges.setSelectionMode(QAbstractItemView.ExtendedSelection)
         # - connect signals / slots
-        self.comboLayers.currentIndexChanged.connect(self.on_comboLayers_currentIndexChanged)
-        self.comboLayersCompareWith.currentIndexChanged.connect(self.refresh_plot)
+        self.comboLayers.checkedItemsChanged.connect(self.on_comboLayers_checkedItemsChanged)
+        self.comboLayersCompareWith.checkedItemsChanged.connect(self.refresh_plot)
         self.listGauges.selectionModel().selectionChanged.connect(self.refresh_plot)
         # Enable or disable comboLayersCompareWith based on checkCompareWith state
         self.comboLayersCompareWith.setEnabled(self.checkCompareWith.isChecked())
@@ -55,8 +56,8 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
         self.comboLayersCompareWith.clear()
         for layer in QgsProject.instance().mapLayers().values():
             if (layer.type() == layer.VectorLayer and 
-                    QgsWkbTypes.geometryType(layer.wkbType()) == QgsWkbTypes.PointGeometry and
-                    "name" in [field.name() for field in layer.fields()]):
+                    QgsWkbTypes.geometryType(layer.wkbType()) == QgsWkbTypes.PointGeometry
+                ):
                 self.comboLayers.addItem(layer.name(), layer)
                 self.comboLayersCompareWith.addItem(layer.name(), layer)
 
@@ -87,27 +88,31 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
         else:
             return None
 
-    def on_comboLayers_currentIndexChanged(self, _):
+    def on_comboLayers_checkedItemsChanged(self, _):
         self.data = None
         # Clear the list view
         self.gauges_list_model.clear()
-        # Get the selected layer
-        if self.comboLayers.currentIndex() < 0:
-            return  
-        layer = self.comboLayers.itemData(self.comboLayers.currentIndex())
-        if layer:
-            # fields = layer.fields()
-            # Fill the list view with the features of the layer
-            for feature in layer.getFeatures():
-                item = QStandardItem()
-                # feature.setFields(fields)
-                # self.gauges_list_model.appendRow(QStandardItem(feature.attributeMap()["name"], feature))
-                item.setText(feature["name"])
-                item.setData(feature)
-                self.gauges_list_model.appendRow(item)
-        # Load the data
-        layer_path = Path(layer.dataProvider().dataSourceUri())
-        self.data = self.get_data(layer_path)
+        # Load the selected layers
+        for index in range(self.comboLayers.count()):
+            if not self.comboLayers.itemCheckState(index):
+                continue
+            layer = self.comboLayers.itemData(index)
+            layer_has_name_field = "name" in [field.name() for field in layer.fields()]
+            if layer:
+                # fields = layer.fields()
+                # Fill the list view with the features of the layer
+                for feature in layer.getFeatures():
+                    item = QStandardItem()
+                    if layer_has_name_field:
+                        name =f"{layer.name()} - {feature['name']}"
+                    else:
+                        name = f"{layer.name()} - Gauge {feature.id()}"
+                    item.setText(name)  
+                    item.setData((name, feature))
+                    self.gauges_list_model.appendRow(item)
+            # Load the data
+            layer_path = Path(layer.dataProvider().dataSourceUri())
+            self.data = self.get_data(layer_path)
 
     def on_comboLayersCompareWith_currentIndexChanged(self, _):
         self.compare_data = None
@@ -140,17 +145,26 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
         if self.data is None or len(selected_features) == 0:
             self.chartView.setHtml("<html><body><h3>No data to display</h3></body></html>")
             return
+        
+        # Retrieve a list of features to compare against if needed
+        compare_features = []
+        if self.checkCompareWith.isChecked() and self.compare_data is not None:
+            for index in range(self.comboLayersCompareWith.count()):
+                if not self.comboLayersCompareWith.itemCheckState(index):
+                    continue
+                compare_layer = self.comboLayersCompareWith.itemData(index)
+                compare_features.extend(compare_layer.getFeatures())
 
         plot_data = []
         colors = px.colors.qualitative.Plotly
-        for index, gauge in enumerate(selected_features):
+        for index, (name, gauge) in enumerate(selected_features):
             color = colors[index % len(colors)]
             # Plot the main data
             trace = go.Scatter(
                 x=self.data['time'],
                 y=self.data[f'Q_{gauge["fid"]}'],
                 mode='lines',
-                name=gauge['name'],
+                name=name,
                 line=dict(color=color),
                 legendgroup="Base"
             )
@@ -159,12 +173,10 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
                 # Find matching features in compare layer within 100m buffer
                 matching_gauge = None
                 current_geom = gauge.geometry()
-                compare_layer = self.comboLayersCompareWith.itemData(self.comboLayersCompareWith.currentIndex())
-                if compare_layer:
-                    for compare_feature in compare_layer.getFeatures():
-                        if current_geom.distance(compare_feature.geometry()) <= 100:
-                            matching_gauge = compare_feature
-                            break
+                for compare_feature in compare_features:
+                    if current_geom.distance(compare_feature.geometry()) <= 1/1130:  # approx. 100m in degrees
+                        matching_gauge = compare_feature
+                        break
                 if matching_gauge is None:
                     continue
                 # Plot the comparison data if needed
@@ -172,7 +184,7 @@ class ResultViewer(QWidget, RESULTVIEWER_FORM_CLASS):
                     x=self.compare_data['time'],
                     y=self.compare_data[f'Q_{matching_gauge["fid"]}'],
                     mode='lines',
-                    name=f'{gauge["name"]} (compare)',
+                    name=f'{name} (compare)',
                     line=dict(
                         dash='dash',
                         color=color

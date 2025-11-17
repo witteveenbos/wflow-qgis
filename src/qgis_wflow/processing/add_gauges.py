@@ -7,10 +7,12 @@ from qgis.core import (
     QgsProcessing,
     QgsProcessingContext,
     QgsProcessingFeedback,
+    QgsProcessingParameterBoolean,
     QgsProcessingParameterFeatureSource,
     QgsProcessingParameterField,
     QgsProcessingParameterFile,
     QgsProcessingParameterFolderDestination,
+    QgsProcessingParameterString
 )
 
 from . import AlgorithmBase
@@ -25,6 +27,9 @@ class AddGaugesAlgorithm(AlgorithmBase):
     INPUT = "INPUT"
     GAUGE_VECTOR = "GAUGE_VECTOR"
     GAUGE_NAME_FIELD = "GAUGE_NAME_FIELD"
+    BASE_NAME = "BASE_NAME"
+    SNAP_TO_RIVER = "SNAP_TO_RIVER"
+    DERIVE_SUBCATCHMENTS = "DERIVE_SUBCATCHMENTS"
     TARGET = "TARGET"
 
 
@@ -56,6 +61,27 @@ class AddGaugesAlgorithm(AlgorithmBase):
                 description=self.tr('Field with the name of the gauges'),
                 parentLayerParameterName=self.GAUGE_VECTOR,
                 type=QgsProcessingParameterField.String,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterString(
+                name=self.BASE_NAME,
+                description=self.tr('Use base name for the gauges function'),
+                defaultValue="gauges",
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.SNAP_TO_RIVER,
+                description=self.tr('Snap to river'),
+                defaultValue=True,
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterBoolean(
+                name=self.DERIVE_SUBCATCHMENTS,
+                description=self.tr('Derive subcatchments'),
+                defaultValue=True,
             )
         )
 
@@ -103,14 +129,14 @@ class AddGaugesAlgorithm(AlgorithmBase):
                 f.write(f"\n{gauge_fid},{gauge[parameters[self.GAUGE_NAME_FIELD]]},{gauge_geom.x()},{gauge_geom.y()}")
 
         # Create the required files
-        GAUGE_FN = "gauges" # TODO: parameterize this
-        ini_file = base_path / "build_update_gauges.ini"
-        with open(ini_file, "w") as f:
-            f.write("[setup_gauges]\n")
-            f.write("index_col       = fid")
-            f.write(f"gauges_fn        = {GAUGE_FN}\n")  
-            f.write("snap_to_river   = True\n")  # TODO: parameterize this
-            f.write("derive_subcatch = True\n")  # TODO: parameterize this
+        GAUGE_FN = re.sub(r'\W|^(?=\d)','_', parameters[self.BASE_NAME])
+        # ini_file = base_path / "build_update_gauges.ini"
+        # with open(ini_file, "w") as f:
+        #     f.write("[setup_gauges]\n")
+        #     f.write("index_col       = fid")
+        #     f.write(f"gauges_fn        = {GAUGE_FN}\n")  
+        #     f.write("snap_to_river   = True\n")  
+        #     f.write("derive_subcatch = True\n")
         yml_file = base_path / "data_catalog_update_gauges.yml"
         with open(yml_file, "w") as f:
             lines = [
@@ -134,7 +160,13 @@ class AddGaugesAlgorithm(AlgorithmBase):
                 "wflow",
                 str(Path(parameters[self.INPUT]).parent),
                 "-o", str(base_path),
-                "-i", str(ini_file),
+                "-c", "setup_gauges",
+                "--opt", f"gauges_fn={GAUGE_FN}",
+                "--opt", f"basename={GAUGE_FN}",
+                "--opt", f"snap_to_river={'True' if parameters[self.SNAP_TO_RIVER] else 'False'}",
+                "--opt", f"derive_subcatch={'True' if parameters[self.DERIVE_SUBCATCHMENTS] else 'False'}",
+                "--opt", "index_col=fid",
+                # "-i", str(ini_file),
                 "-d", str(yml_file),
                 "-vvv",
             ],
@@ -144,6 +176,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
             encoding='utf-8',
             errors='replace'
         )
+        
         while (realtime_output := process.stdout.readline()) != '' or process.poll() is None:
             if realtime_output:
                 match = self.PROGRESS_REGEX.search(realtime_output)

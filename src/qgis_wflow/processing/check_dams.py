@@ -41,7 +41,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterFile(
                 name=self.INPUT,
-                description=self.tr('Input folder of wflow'),
+                description=self.tr('Input .toml-file of wflow'),
                 extension="toml"
             )
         )

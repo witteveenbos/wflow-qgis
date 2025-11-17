@@ -186,73 +186,6 @@ class LoadLayersAlgorithm(AlgorithmBase):
             )
         )
 
-    @staticmethod
-    def set_gauge_action(layer):
-        """Set the action for the gauges layer."""
-        from qgis.core import Qgis, QgsAction
-        layer.actions().addAction(
-            QgsAction(
-                Qgis.AttributeActionType.GenericPython,
-                description="Opens a chart showing the discharge time series for the selected location(s). "
-                "Clicking on the map will add the selected location to the to the current selection and thus "
-                "to the time series for comparison.",
-                action=(
-                    "from pathlib import Path\n"
-                    "import pandas as pd\n"
-                    "import plotly.express as px\n"
-                    "import plotly.offline as po\n"
-                    "from qgis.PyQt import QtWidgets\n"
-                    "from qgis.PyQt.QtWebKitWidgets import QWebView\n"
-                    "# Determine the location of the file `output.csv` and load the file\n"
-                    "# in a DataFrame for further processing\n"
-                    "layer = QgsProject.instance().mapLayer('[% @layer_id %]')\n"
-                    "layer_path = Path(layer.dataProvider().dataSourceUri())\n"
-                    "output_data = layer_path.parent / '../run_default/output.csv'\n"
-                    "df_output = pd.read_csv(output_data)\n"
-                    "\n"
-                    "# Add the clicked points to the selection\n"
-                    "layer.selectByExpression(f'\"fid\" = \\'[%fid%]\\'', QgsVectorLayer.AddToSelection)\n"
-                    "\n"
-                    "# Show the discharge for the selected points\n"
-                    "fig = px.line(df_output, x='time', y=[f'Q_{feature[\"fid\"]}' for feature in layer.selectedFeatures()], title='Discharge')\n"
-                    "# Rename the traces to the names of the gauges\n"
-                    "newnames = {\n"
-                    "    f'Q_{feature[\"fid\"]}': feature[\"name\"]\n"
-                    "    for feature\n"
-                    "    in layer.selectedFeatures()\n"
-                    "}\n"
-                    "fig.for_each_trace(\n"
-                    "    lambda t: t.update(\n"
-                    "        name = newnames[t.name],\n"
-                    "        legendgroup = newnames[t.name],\n"
-                    "        hovertemplate = t.hovertemplate.replace(t.name, newnames[t.name])\n"
-                    "    )\n"
-                    ")\n"
-                    "\n"
-                    "# Convert the figure to HTML\n"
-                    "raw_html = f'''\n"
-                    "<html>\n"
-                    "<head>\n"
-                    "    <meta charset=\"utf-8\" />\n"
-                    "    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n"
-                    "</head>\n"
-                    "<body>\n"
-                    "    {po.plot(fig, include_plotlyjs=False, output_type='div')}\n"
-                    "</body>\n"
-                    "</html>\n"
-                    "'''\n"
-                    "# Show the plot in a webview\n"
-                    "webview = QWebView(None)\n"
-                    "webview.setHtml(raw_html)\n"
-                    "webview.show()\n"
-                ),
-                icon=None,
-                capture=False,
-                shortTitle="Show discharge time series",
-                actionScopes=["Canvas"],
-            )
-        )
-
     def apply_styling(layer_group, present_styles):
         """
         Apply styling to the layers in the group that correspond to the list of present styles.
@@ -337,8 +270,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
                     "ogr",
                 )
                 layer.setName(static_geom)
-                if static_geom.startswith("gauges"):
-                    self.set_gauge_action(layer)
+
 
                 QgsProject.instance().addMapLayer(layer, False)
                 group_geoms.addLayer(layer)

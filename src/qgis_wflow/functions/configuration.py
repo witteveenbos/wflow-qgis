@@ -33,19 +33,3 @@ def hydromt_version() -> str | None:
         return __version__
     except ImportError:
         return None
-
-
-def install_hydromt_wflow():
-    """Installs or updates the hydromt_wflow package."""
-    import os
-    import subprocess
-    import sys
-    # Modify the path, so we can access the Python executable
-    env = os.environ.copy()
-    env["PATH"] = ";".join(sys.path)
-    # Install the package using pip
-    res = subprocess.run(["python", "-m", "pip", "install", "-U", "hydromt_wflow<1.0", "pywinpty"], env=env, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    if res.returncode != 0:
-        print(res.stdout)
-        print(res.stderr)
-        raise RuntimeError("Failed to install hydromt_wflow")

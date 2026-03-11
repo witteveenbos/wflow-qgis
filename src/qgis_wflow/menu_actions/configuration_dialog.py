@@ -9,7 +9,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import QProcess, QProcessEnvironment, Qt
 from qgis.PyQt.QtWidgets import QDialog, QWidget, QFileDialog, QMessageBox
 
-from qgis_wflow.functions.configuration import hydromt_version, wflow_path, set_wflow_path, install_hydromt_wflow
+from qgis_wflow.functions.configuration import hydromt_version, wflow_path, set_wflow_path
 
 
 CONFIGURAION_FORM_CLASS = uic.loadUiType(
@@ -41,7 +41,7 @@ class HydroMTInstallationProgress(QDialog, INSTALLATION_PROGRESS_FORM_CLASS):
         env = QProcessEnvironment.systemEnvironment()
         env.insert("PATH", ";".join(sys.path))
         self._process.setProcessEnvironment(env)
-        self._process.start("python", ["-m", "pip", "install", "-U", "hydromt_wflow<1.0"])
+        self._process.start("python", ["-m", "pip", "install", "-U", "NumPy==1.26.4", "xarray==2023.1.0", "netCDF4==1.6.5", "hydromt_wflow<1.0"])
         # - Update label
         self.lblInstallationStatus.setText("Installing hydromt_wflow package...")
         # - Update buttons

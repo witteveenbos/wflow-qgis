@@ -2,8 +2,8 @@ import re
 import shutil
 import typing
 from pathlib import Path
-import xarray as xr
-import rioxarray
+from osgeo import gdal
+import numpy as np
 
 from qgis import processing
 from qgis.core import (
@@ -169,7 +169,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         )
 
         # given the mask raster and the base raster, create a new raster with the adjusted terracing values
-        # hardcoded that the target rasterpath is put into staticmaps.nc":Slope 
+        # hardcoded that the target rasterpath is put into staticmaps.nc":N_River 
         feedback.pushInfo(f"Base raster path: {base_raster_path}")
         orig_nc = target_folder / "staticmaps.nc"
         output_nc = target_folder / "N_River_with_check_dams.tif"
@@ -189,14 +189,31 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
                     feedback=feedback,
                     is_child_algorithm=True
                 )
-        
-        # Open the original netCDF file and add the new slope layer
-        ds = xr.open_dataset(orig_nc)
-        new_slope = rioxarray.open_rasterio(str(output_nc)).squeeze()
-        ds['N_River'] = new_slope
+               
+       # copy the original netcdf file to a new file
         out_nc = target_folder / "staticmaps_with_check_dams.nc"
-        ds.to_netcdf(out_nc)
-        ds.close()
-        new_slope.close()
+        shutil.copy2(orig_nc, out_nc)
+        # Get the path to the N_river layer
+        nriver_subdataset = f'NETCDF:"{str(out_nc)}":N_River'
+
+        # Read the adjust nriver data from the tif created in the previous step
+        # Due to conversion between formats NoData needs to be explicitly determined and changed
+        # this prevents the 
+        with gdal.Open(str(output_nc), gdal.GA_ReadOnly) as ds_nriver:
+            src_band = ds_nriver.GetRasterBand(1)
+            src_nodata = src_band.GetNoDataValue()
+            nriver_data = src_band.ReadAsArray()
+            
+            # Open the nriver subdataset in the NetCDF directly for writing
+            with gdal.Open(nriver_subdataset, gdal.GA_Update) as nriver_ds:
+                nriver_out_band = nriver_ds.GetRasterBand(1)
+                if src_nodata is not None:
+                    dst_nodata = nriver_out_band.GetNoDataValue()
+                    if dst_nodata is not None:
+                        nriver_data = np.where(nriver_data == src_nodata, dst_nodata, nriver_data)
+                nriver_out_band.WriteArray(nriver_data)
+                nriver_out_band.FlushCache()
+        
+        feedback.pushInfo(f"Successfully updated N_River in {out_nc}")
 
         return {}

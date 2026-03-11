@@ -2,8 +2,7 @@ import re
 import shutil
 import typing
 from pathlib import Path
-import xarray as xr
-import rioxarray
+import numpy as np
 
 from qgis import processing
 from qgis.core import (
@@ -16,7 +15,8 @@ from qgis.core import (
     QgsProcessingParameterFolderDestination,
     QgsProcessingParameterRasterLayer,
 )
-
+from osgeo import gdal
+import pprint
 from . import AlgorithmBase
 from ..functions.file_utils import delete_folder
 
@@ -191,13 +191,28 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
                     is_child_algorithm=True
                 )
         
-        # Open the original netCDF file and add the new slope layer
-        ds = xr.open_dataset(orig_nc)
-        new_slope = rioxarray.open_rasterio(str(output_nc)).squeeze()
-        ds['Slope'] = new_slope
+        # copy the original netcdf file to a new file
         out_nc = target_folder / "staticmaps_with_terracing.nc"
-        ds.to_netcdf(out_nc)
-        ds.close()
-        new_slope.close()
+        shutil.copy2(orig_nc, out_nc)
+        # Get the path to the Slope layer
+        slope_subdataset = f'NETCDF:"{str(out_nc)}":Slope'
+
+        # Read the adjust slope data from the tif created in the previous step
+        with gdal.Open(str(output_nc), gdal.GA_ReadOnly) as ds_slope:
+            src_band = ds_slope.GetRasterBand(1)
+            src_nodata = src_band.GetNoDataValue()
+            slope_data = src_band.ReadAsArray()
+            
+            # Open the Slope subdataset in the NetCDF directly for writing
+            with gdal.Open(slope_subdataset, gdal.GA_Update) as slope_ds:
+                slope_out_band = slope_ds.GetRasterBand(1)
+                if src_nodata is not None:
+                    dst_nodata = slope_out_band.GetNoDataValue()
+                    if dst_nodata is not None:
+                        slope_data = np.where(slope_data == src_nodata, dst_nodata, slope_data)
+                slope_out_band.WriteArray(slope_data)
+                slope_out_band.FlushCache()
+        
+        feedback.pushInfo(f"Successfully updated Slope in {out_nc}")
 
         return {}

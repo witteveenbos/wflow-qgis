@@ -14,6 +14,9 @@ about=With the wflow NBS design tool plugin, users can easily benefit from the r
 icon=resources/wflow_logo.png
 
 changelog=
+    Version 1.0.2
+    * Replace xarray with gdal in check_dams & terracing
+    * Add import of necessary packages (xarray, netCDF4, numpy version 1.26)
     Version 1.0.1:
     * Standardized input and output for NBS algortihms
     * Updated result viewer with multi-selection for layers

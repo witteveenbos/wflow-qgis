@@ -9,7 +9,7 @@ import plotly.express as px
 from qgis.core import QgsProject, QgsWkbTypes
 from qgis.PyQt.QtGui import QIcon, QStandardItem, QStandardItemModel
 from qgis.PyQt.QtWidgets import QAbstractItemView, QWidget
-import xarray as xr
+
 
 # RESULTVIEWER_FORM_CLASS = uic.loadUiType(
 #     os.path.join(os.path.dirname(__file__), "ui", "result_viewer.ui")
@@ -63,6 +63,7 @@ class ResultViewer(QWidget, ResultViewerUI):
 
     def get_data(self, layer_path):
         # Find the toml file in the folder
+        import xarray as xr
         toml_files = list(layer_path.parent.parent.glob("*.toml"))
         if toml_files:
             toml_file = toml_files[0]

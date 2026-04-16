@@ -96,10 +96,6 @@ class Plugin():
         self.menu.addAction(self.action_configure_plugin)
         self.menu.addSeparator()
 
-        self.action_run_wflow = QAction(icon_gears, self.tr("Run wflow"))
-        self.action_run_wflow.triggered.connect(self.runWFlowDialog)
-        self.menu.addAction(self.action_run_wflow)
-
         # Diaglogs -> toolbar
         self.actions.append(WFlowAction(
                 self.iface,

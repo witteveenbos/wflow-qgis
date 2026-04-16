@@ -4,7 +4,7 @@ description=With the wflow NBS design tool plugin, users can easily benefit from
 author=Peter van Tol
 email=Peter.van.Tol@witteveenbos.com
 
-version=0.1
+version=1.02
 qgisMinimumVersion=3.36
 experimental=True
 homepage=https://www.deltares.nl/en/software-and-data/products/wflow-catchment-hydrology-modelling

@@ -102,6 +102,7 @@ DEFAULT_STATIC_MAPS = [
     "wflow_subcatch",
     "Slope",
     "LAI",
+    "N_River",
 ]
 
 # gauges (allemaal), rivers, reservoirs, subcatch, basins, highres, region

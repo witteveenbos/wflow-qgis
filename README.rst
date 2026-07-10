@@ -27,6 +27,10 @@ And the wflow NbS design tool includes some specific functionalities for NbS:
 - Add terracing
 
 
+Note that a basis wflow model is required to use the wflow NbS design tool.
+How to build a wflow model is described in the wflow documentation: https://deltares.github.io/Wflow.jl/dev/ 
+
+
 Author
 =======
 The tool was developed by Witteveen+Bos in collaboration with Deltares. If you have any questions, please contact: 

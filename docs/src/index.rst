@@ -31,6 +31,8 @@ Contents
 
    Overview <readme>
    Installation and Configuration <installation>
+   wflow functionalities <wflow_functionalities>
+   Schematization of NbS <NbS_schematization>
    Examples <examples>
    Contributions & Help <contributing>
    License <license>

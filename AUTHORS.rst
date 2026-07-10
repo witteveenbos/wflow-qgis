@@ -1,5 +1,6 @@
 ============
 Contributors
 ============
-
-* Daan te Witt <daan.te.witt@witteveenbos.com>
+* Peter van Tol
+* Anne den Hartog
+* Daan te Witt

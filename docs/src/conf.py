@@ -122,7 +122,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "qgis_wflow"
+project = "wflow NbS design tool"
 copyright = "2026, Witteveen+Bos"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -286,7 +286,7 @@ for path in html_static_path:
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "qgis_wflow-doc"
+htmlhelp_basename = "wflow_NbS_design_tool-doc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -303,7 +303,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "user_guide.tex", "qgis_wflow Documentation", "Daan te Witt", "manual")
+    ("index", "user_guide.tex", "wflow NbS design tool Documentation", "Daan te Witt", "manual")
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

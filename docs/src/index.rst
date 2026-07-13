@@ -1,8 +1,8 @@
 =====================
-wflow_NbS_design_tool
+wflow NbS design tool
 =====================
 
-This is the documentation of **wflow_NbS_design_tool**.
+This is the documentation of **wflow NbS design tool**.
 
 .. note::
 

@@ -4,7 +4,7 @@
 Examples
 ========
 
-These are examples for application of **wflow_NbS_design_tool**.
+These are examples for application of the **wflow NbS design tool**.
 
 .. note::
     Examples can be added by creating `Jupyter Notebook`_ files in the ``\examples`` directory in

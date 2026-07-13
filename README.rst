@@ -2,7 +2,11 @@
 wflow NbS design tool
 =====================
 
-    Plugin for QGIS to easily schematize and calculate the effect of NbS using a wflow model 
+
+Plugin description
+=======
+
+Plugin for QGIS to easily schematize and calculate the effect of NbS using a wflow model 
 
 
 The wflow NbS design tool includes some basic wflow functionalities: 

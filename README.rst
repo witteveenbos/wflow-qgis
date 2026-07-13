@@ -37,7 +37,8 @@ How to build a wflow model is described in the wflow documentation: https://delt
 
 Author
 =======
-The tool was developed by Witteveen+Bos in collaboration with Deltares. If you have any questions, please contact: 
-`Daan te Witt <mailto:daan.te.witt@witteveenbos.com>`_
+The tool was developed by Witteveen+Bos in collaboration with Deltares.
+
+If you have any questions, please contact: `Daan te Witt <mailto:daan.te.witt@witteveenbos.com>`_
 
 

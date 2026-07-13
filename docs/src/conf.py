@@ -32,7 +32,7 @@ os.environ['PYTHONPATH'] = root
 extensions = [
 #    "nbsphinx",
 #    "nbsphinx_link",
-    "sphinx.ext.autodoc",
+    # "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.autosummary",

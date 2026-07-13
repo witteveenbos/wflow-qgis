@@ -4,7 +4,7 @@ Functionalities for schematization of NbS
 
 
 Add reservoirs
-====
+==============
 
 The add reservoirs functionality adds reservoirs to a wflow model. 
 The add reservoirs functionality can be found in the wflow NBS design tool in the Processing Toolbox under 'Add NBS'. 
@@ -37,37 +37,34 @@ This vector layer should contain the polygons of the reservoirs and the followin
 A template vector layer containing all these fields can be generated using the 'Create reservoir' function. 
 This functionality can be found in the wflow toolbar, see the figure below: 
 
-.. figure:: ../_static/wflow_toolbar_add_reservoir.png
+.. figure:: ./_static/wflow_toolbar_add_reservoir.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- ``Create reservoir`` functionality in the wflow NBS design tool toolbar 
+``Create reservoir`` functionality in the wflow NBS design tool toolbar 
 
 To run the add reservoirs functionality, provide the path to the .toml-file of the wflow model you want to add the reservoirs to, 
 provide the vector layer with the reservoirs and a target folder for the model with the new reservoirs. 
 Press ``Run`` to execute the functionality. See the figure below:
 
-.. figure:: ../_static/add_reservoirs_panel.png
+.. figure:: ./_static/add_reservoirs_panel.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- ``Add reservoir`` panel in the wflow NBS design tool 
+``Add reservoir`` panel in the wflow NBS design tool 
 
 The plugin makes use of the python package HydroMT-wflow to add the reservoirs to the wflow model. 
 The plugin will also return the logging of HydroMT-wflow in the Processing Log panel. See the figure below:
 
-.. figure:: ../_static/add_reservoirs_result.png
+.. figure:: ./_static/add_reservoirs_result.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- Result of the ``Add reservoir`` functionality in the wflow NBS design tool 
+Result of the ``Add reservoir`` functionality in the wflow NBS design tool 
 
 
 Change landuse
-====
+==============
 
 The change landuse functionality changes the landuse of a wflow model. 
 The change landuse functionality can be found in the wflow NBS design tool in the Processing Toolbox under 'Add NBS'.
@@ -78,12 +75,11 @@ This landuse class should be provided as the landuse value in the orignal landus
 A template vector layer containing these fields can be generated using the 'Create landuse' function.
 This functionality can be found in the wflow toolbar, see the figure below:
 
-.. figure:: ../_static/wflow_toolbar_change_landuse.png
+.. figure:: ./_static/wflow_toolbar_change_landuse.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- ``Create landuse`` functionality in the wflow NBS design tool toolbar
+``Create landuse`` functionality in the wflow NBS design tool toolbar
 
 When this functionality is used, you also need to provide the landuse mapping that is used in the wflow model. 
 This enables the plugin to let you choose directly from the landuse classes, instead of from their landuse values. 
@@ -96,28 +92,28 @@ provide the field in this vector layer that contains the new landuse class for t
 and a target folder for the model with the new landuse. 
 Press ``Run`` to execute the functionality. See the figure below:
 
-.. figure:: ../_static/change_landuse_panel.png
+.. figure:: ./_static/change_landuse_panel.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- ``Change landuse`` panel in the wflow NBS design tool
+``Change landuse`` panel in the wflow NBS design tool
  
 The plugin makes use of the python package HydroMT-wflow to update the landuse of the wflow model. 
 The plugin will also return the logging of HydroMT-wflow in the Processing Log panel. See the figure below:
 
-.. figure:: ../_static/change_landuse_result.png
+.. figure:: ./_static/change_landuse_result.png
   :width: 200px
-  :height: auto
   :alt: some alt text
 
- Result of the ``Change landuse`` functionality in the wflow NBS design tool 
+Result of the ``Change landuse`` functionality in the wflow NBS design tool 
 
 
 Add check dams
-====
+==============
 
-
+TODO
 
 Add terracing
-====
+=============
+
+TODO

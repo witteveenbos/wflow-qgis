@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
+import tomllib
 
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon
@@ -98,6 +100,36 @@ class ConfigurationDialog(QDialog, CONFIGURAION_FORM_CLASS):
         # - show the installed version of hydromt_wflow
         self.update_version_label()
 
+    def _wflow_version_is_valid(self, executable_path: str) -> bool:
+        cli_path = Path(executable_path)
+        installation_folder = cli_path.parents[1]
+        version_file = str(installation_folder / "share" / "julia" / "Manifest.toml")
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setText(version_file)
+        msg.setWindowTitle("Wflow version error")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as file:
+                file_content = file.read()
+            config = tomllib.loads(file_content)
+
+            wflow_version = config["deps"]["Wflow"][0]["version"]
+            if int(wflow_version.split(".")[0]) < 1:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setText("You selected an unsupported wflow version. Only version 1+ is supported")
+                msg.setWindowTitle("Wflow version error")
+                msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("Cannot find version wflow version file.")
+            msg.setWindowTitle("Wflow error")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+
     def update_version_label(self):
         version = hydromt_version()
         if version is None:
@@ -114,7 +146,7 @@ class ConfigurationDialog(QDialog, CONFIGURAION_FORM_CLASS):
             'c:\\',
             "Executable (*.exe)"
         )
-        if fname[0]:
+        if fname[0] and self._wflow_version_is_valid(fname[0]):
             self.editWflowExecutable.setText(fname[0])
 
     def install_hydromt(self):

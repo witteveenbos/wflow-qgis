@@ -1,6 +1,6 @@
+import logging
 import re
 import shutil
-import subprocess
 import typing
 from pathlib import Path
 
@@ -19,7 +19,7 @@ from qgis.core import (
     QgsRasterPipe,
 )
 
-from . import AlgorithmBase
+from . import AlgorithmBase, QgsFeedbackHandler
 
 
 LULC_MAPS = [
@@ -141,7 +141,8 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
         # Deferred import to avoid crashing QGis when plugin is not loaded correctly. Users have to
         # install the required packages first.
         try:
-            import hydromt_wflow
+            from hydromt_wflow import WflowSbmModel
+            from hydromt import log
         except ImportError as e:
             feedback.reportError("Failed to import required libraries. Please run installer (Plugins->WFlow->Configuration)")
             return {}
@@ -228,31 +229,39 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
    
         # Run the hydromt command to update the land use map
         feedback.pushInfo(f"{input_path.parent}")
-        from hydromt_wflow import WflowSbmModel
-        import numpy as np
-        np.bool = np.bool_
+
+        # Enable logging for hydromt_wflow to the QGis feedback panel
+        handler = QgsFeedbackHandler(feedback)
+        hydromt_logger = logging.getLogger("hydromt")
+        hydromt_logger.setLevel(logging.INFO)
+        hydromt_logger.addHandler(handler)
+
+        try:
+            # Instantiate model
+            model = WflowSbmModel(
+                root=input_path.parent.as_posix(), 
+                mode="r",
+                config_filename=input_path.name,
+                data_libs=[yml_file.absolute().as_posix()], 
+            )
+
+            # read model
+            model.read()
+            
+            # Update landuse map
+            model.setup_lulcmaps(
+                lulc_fn='globcover', 
+                lulc_mapping_fn="globcover_mapping_default"
+            )
+
+            # Set root and write updated model
+            model.root.set(
+                path=base_path,
+                mode="w"
+            )
+            model.write()
+        finally:
+            # Remove the handler to avoid duplicate logs in subsequent runs
+            hydromt_logger.removeHandler(handler)
         
-        model = WflowSbmModel(
-            root=input_path.parent.as_posix(), 
-            mode="r",
-            config_filename=input_path.name,
-            data_libs=[yml_file.absolute().as_posix()], 
-        )
-
-        # read model
-        model.read()
-        
-        # Update landuse map
-        model.setup_lulcmaps(
-            lulc_fn='globcover', 
-            lulc_mapping_fn="globcover_mapping_default"
-        )
-
-        # set root and write updated model
-        model.root.set(
-            path=base_path,
-            mode="w"
-        )
-        model.write()
-
         return {}

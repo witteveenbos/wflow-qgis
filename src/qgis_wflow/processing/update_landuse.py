@@ -209,52 +209,50 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
             )
 
         # Create the required files
-        ini_file = base_path / "build_update_landuse.ini"
-        with open(ini_file, "w") as f:
-            f.write("[setup_lulcmaps]\n")
-            f.write(f"lulc_fn         = {LULC_MAPS[parameters[self.LULC_MAP]]}          # source for lulc maps: {{globcover, vito, corine}})\n")
         yml_file = base_path / "data_catalog_update_landuse.yml"
         with open(yml_file, "w") as f:
             lines = [
-                f"root: {str(base_path)}\n",
                 "meta:\n",
                 "  version: '2023.11'\n",
+                "  hydromt_version: \">1.0a, <2\"\n",
                 "\n",
                 f"{LULC_MAPS[parameters[self.LULC_MAP]]}:\n",
-                "  crs: 4326\n",
                 "  data_type: RasterDataset\n",
-                "  driver: raster\n",
-                "  filesystem: local\n",
-                f"  path: ./shapes/{target_raster_path.name}\n",
-                "  meta:\n",
+                f"  uri: {target_raster_path}\n",
+                "  driver: \n",
+                "    name: rasterio\n",
+                "  metadata:\n",
                 *LULC_META[LULC_MAPS[parameters[self.LULC_MAP]]]
             ]
             f.writelines(lines)
    
         # Run the hydromt command to update the land use map
-        process = subprocess.Popen(
-            [
-                Path(hydromt_wflow.__file__).parent.parent.parent / "Scripts" / "hydromt.exe",
-                "update",
-                "wflow",
-                str(Path(parameters[self.INPUT]).parent),
-                "-o", str(base_path),
-                "-i", str(ini_file),
-                "-d", str(yml_file),
-                "-vvv",
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            encoding='utf-8',
-            errors='replace'
+        feedback.pushInfo(f"{input_path.parent}")
+        from hydromt_wflow import WflowSbmModel
+        import numpy as np
+        np.bool = np.bool_
+        
+        model = WflowSbmModel(
+            root=input_path.parent.as_posix(), 
+            mode="r",
+            config_filename=input_path.name,
+            data_libs=[yml_file.absolute().as_posix()], 
         )
-        while (realtime_output := process.stdout.readline()) != '' or process.poll() is None:
-            if realtime_output:
-                match = self.PROGRESS_REGEX.search(realtime_output)
-                if match:
-                    feedback.setProgress(int(match.group(1)))
-                else:
-                    feedback.pushInfo(realtime_output.strip())
+
+        # read model
+        model.read()
+        
+        # Update landuse map
+        model.setup_lulcmaps(
+            lulc_fn='globcover', 
+            lulc_mapping_fn="globcover_mapping_default"
+        )
+
+        # set root and write updated model
+        model.root.set(
+            path=base_path,
+            mode="w"
+        )
+        model.write()
 
         return {}

@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import sys
 
+from qgis.core import Qgis
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import QProcess, QProcessEnvironment, Qt
@@ -41,7 +42,15 @@ class HydroMTInstallationProgress(QDialog, INSTALLATION_PROGRESS_FORM_CLASS):
         env = QProcessEnvironment.systemEnvironment()
         env.insert("PATH", ";".join(sys.path))
         self._process.setProcessEnvironment(env)
-        self._process.start("python", ["-m", "pip", "install", "-U", "NumPy==1.26.4", "xarray==2023.1.0", "netCDF4==1.6.5", "hydromt_wflow>=1.0,<1.1"])
+        if Qgis.version()[0] == '3':
+            # Install for QGIS 3.x, based on Numpy 1.26.4
+            numpy_spec = "NumPy==1.26.4"
+        elif Qgis.version()[0] == '4':
+            # Install for QGIS 4.x or other versions, based on Numpy 2.6.4
+            numpy_spec = "NumPy==2.6.4"
+        else:
+            raise RuntimeError(f"Unsupported QGIS version: {Qgis.version()}")
+        self._process.start("python", ["-m", "pip", "install", "-U", "--no-warn-script-location", numpy_spec, "xarray==2026.4.0", "netCDF4==1.7.4", "hydromt_wflow>=1.0,<1.1"])
         # - Update label
         self.lblInstallationStatus.setText("Installing hydromt_wflow package...")
         # - Update buttons

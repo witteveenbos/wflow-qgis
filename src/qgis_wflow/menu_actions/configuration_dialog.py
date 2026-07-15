@@ -110,15 +110,18 @@ class ConfigurationDialog(QDialog, CONFIGURAION_FORM_CLASS):
         self.update_version_label()
 
     def _wflow_version_is_valid(self, executable_path: str) -> bool:
+        """Check if the user selected wflow version is supported
+
+        Args:
+            executable_path (str): path of the selected wflow executable
+
+        Returns:
+            bool: whether version is supported or not
+        """
         cli_path = Path(executable_path)
         installation_folder = cli_path.parents[1]
         version_file = str(installation_folder / "share" / "julia" / "Manifest.toml")
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Icon.Warning)
-        msg.setText(version_file)
-        msg.setWindowTitle("Wflow version error")
-        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
 
         if os.path.exists(version_file):
             with open(version_file, 'r') as file:
@@ -126,18 +129,27 @@ class ConfigurationDialog(QDialog, CONFIGURAION_FORM_CLASS):
             config = tomllib.loads(file_content)
 
             wflow_version = config["deps"]["Wflow"][0]["version"]
+            if wflow_version == "":
+                return False # empty string/ canceled
+            
             if int(wflow_version.split(".")[0]) < 1:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Warning)
-                msg.setText("You selected an unsupported wflow version. Only version 1+ is supported")
+                msg.setText(f"You selected an unsupported wflow version. Only version 1+ is supported. Selected version: {wflow_version}")
                 msg.setWindowTitle("Wflow version error")
                 msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg.exec()
+                return False
+            else:
+                return True
         else:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Icon.Warning)
             msg.setText("Cannot find version wflow version file.")
             msg.setWindowTitle("Wflow error")
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+            return False
 
     def update_version_label(self):
         version = hydromt_version()

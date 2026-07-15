@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 import re
 
@@ -199,3 +200,14 @@ class AutoProcessingProvider(QgsProcessingProvider):
         implementation returns the same string as name().
         """
         return self.name()
+
+
+class QgsFeedbackHandler(logging.Handler):
+    
+    def __init__(self, feedback):
+        super().__init__()
+        self.feedback = feedback
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.feedback.pushInfo(msg)

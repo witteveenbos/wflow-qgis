@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import QCoreApplication, QLocale, QSettings, QTranslator
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
@@ -9,6 +10,13 @@ from qgis.core import QgsApplication
 from qgis.gui import QgisInterface
 
 from .processing import AutoProcessingProvider
+
+# QGis 3.x relies on numpy 1.26.4, which has deprecated np.bool. To avoid issues with hydromt_wflow,
+# we need to alias np.bool to np.bool_ for QGis 3.x.
+if Qgis.version()[0] == '3':
+    import numpy as np
+    np.bool = np.bool_
+
 
 class WFlowAction(object):
 

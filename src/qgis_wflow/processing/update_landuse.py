@@ -142,7 +142,7 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
         # install the required packages first.
         try:
             from hydromt_wflow import WflowSbmModel
-            from hydromt import log
+            import xarray as xr
         except ImportError as e:
             feedback.reportError("Failed to import required libraries. Please run installer (Plugins->WFlow->Configuration)")
             return {}
@@ -208,24 +208,6 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
                 feedback=feedback,
                 is_child_algorithm=True
             )
-
-        # Create the required files
-        yml_file = base_path / "data_catalog_update_landuse.yml"
-        with open(yml_file, "w") as f:
-            lines = [
-                "meta:\n",
-                "  version: '2023.11'\n",
-                "  hydromt_version: \">1.0a, <2\"\n",
-                "\n",
-                f"{LULC_MAPS[parameters[self.LULC_MAP]]}:\n",
-                "  data_type: RasterDataset\n",
-                f"  uri: {target_raster_path}\n",
-                "  driver: \n",
-                "    name: rasterio\n",
-                "  metadata:\n",
-                *LULC_META[LULC_MAPS[parameters[self.LULC_MAP]]]
-            ]
-            f.writelines(lines)
    
         # Run the hydromt command to update the land use map
         feedback.pushInfo(f"{input_path.parent}")
@@ -242,7 +224,7 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
                 root=input_path.parent.as_posix(), 
                 mode="r",
                 config_filename=input_path.name,
-                data_libs=[yml_file.absolute().as_posix()], 
+                # data_libs=[yml_file.absolute().as_posix()], 
             )
 
             # read model
@@ -250,8 +232,8 @@ class UpdateLandUseAlgorithm(AlgorithmBase):
             
             # Update landuse map
             model.setup_lulcmaps(
-                lulc_fn='globcover', 
-                lulc_mapping_fn="globcover_mapping_default"
+                lulc_fn=xr.open_dataarray(target_raster_path.as_posix(), engine="rasterio"),
+                lulc_mapping_fn=f"{LULC_MAPS[parameters[self.LULC_MAP]]}_mapping_default"
             )
 
             # Set root and write updated model

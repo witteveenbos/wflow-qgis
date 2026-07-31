@@ -63,14 +63,14 @@ class CreateReservoir(QDialog):
             QgsField("Lake_name", QMetaType.QString),
             QgsField("Country", QMetaType.QString),
             QgsField("Continent", QMetaType.QString),
-            QgsField("Depth_avg", QMetaType.Double),
+            QgsField("reservoir_initial_depth", QMetaType.Double),
             QgsField("waterbody_id", QMetaType.Int),
-            QgsField("ResSimpleArea", QMetaType.Double),
-            QgsField("ResMaxVolume", QMetaType.Double),
-            QgsField("ResTargetMinFrac", QMetaType.Double),
-            QgsField("ResDemand", QMetaType.Double),
-            QgsField("ResMaxRelease", QMetaType.Double),
-            QgsField("ResTargetFullFrac", QMetaType.Double),
+            QgsField("reservoir_area", QMetaType.Double),
+            QgsField("reservoir_max_volume", QMetaType.Double),
+            QgsField("reservoir_target_min_fraction", QMetaType.Double),
+            QgsField("reservoir_demand", QMetaType.Double),
+            QgsField("reservoir_max_release", QMetaType.Double),
+            QgsField("reservoir_target_full_fraction", QMetaType.Double),
             ])
         reservoir_layer.commitChanges()
         

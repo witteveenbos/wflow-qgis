@@ -35,3 +35,17 @@ def delete_folder(folder: Path, feedback=None):
                     os.rmdir(os.path.join(root, name))
             os.chmod(folder, stat.S_IWUSR)
             os.rmdir(folder)
+
+def path_from_feature_layer(qgis_layer_source: str) -> str:
+    """Return the path of the vector file from a URI. Removes the noice like layer names from the string
+
+    Args:
+        qgis_layer_source (str): path returned by <QgsMapLayer>.source()
+
+    Returns:
+        str: truncated string
+    """
+    if ".gpkg" in qgis_layer_source:
+        return qgis_layer_source.split("|")[0], qgis_layer_source.split("=")[-1]  # e.g. path/to/file.gpkg|layername=test
+    else:
+        return qgis_layer_source, None

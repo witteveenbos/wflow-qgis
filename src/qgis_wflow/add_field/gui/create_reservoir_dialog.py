@@ -71,6 +71,8 @@ class CreateReservoir(QDialog):
             QgsField("reservoir_demand", QMetaType.Double),
             QgsField("reservoir_max_release", QMetaType.Double),
             QgsField("reservoir_target_full_fraction", QMetaType.Double),
+            QgsField("Dam_height", QMetaType.Double),
+            QgsField("Depth_avg", QMetaType.Double),
             ])
         reservoir_layer.commitChanges()
         

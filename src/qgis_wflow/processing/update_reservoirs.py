@@ -3,6 +3,7 @@ import subprocess
 import os
 import typing
 from pathlib import Path
+import logging
 
 from qgis.core import (
     QgsProcessing,
@@ -15,7 +16,7 @@ from qgis.core import (
 from qgis import processing
 import geopandas as gpd
 
-from . import AlgorithmBase
+from . import AlgorithmBase, QgsFeedbackHandler
 from ..functions.file_utils import path_from_feature_layer
 
 class UpdateReservoirsAlgorithm(AlgorithmBase):
@@ -84,81 +85,24 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
 
         output_dir = base_path / f"{input_path.stem}_v1_with_reservoirs"
         os.makedirs(output_dir, exist_ok=True)
-        
-        model = WflowSbmModel(root=input_path.parent, mode="r")
 
-        reservoirs_gpkg, layer_name = path_from_feature_layer(reservoir_layer.source())
-        reservoirs_gpd = gpd.read_file(filename=reservoirs_gpkg, layer=layer_name)
+        handler = QgsFeedbackHandler(feedback)
+        hydromt_logger = logging.getLogger("hydromt")
+        hydromt_logger.setLevel(logging.INFO)
+        hydromt_logger.addHandler(handler)
+        try:
+            # Read model
+            model = WflowSbmModel(root=input_path.parent, mode="r", config_filename=input_path.name)
+            model.read()
 
-        model.setup_reservoirs_simple_control(reservoirs_fn=reservoirs_gpd, min_area=0.0)
+            reservoirs_gpkg = path_from_feature_layer(reservoir_layer.source())
 
-        model.set_root(root=base_path, mode="w")
-
-        model.write()
-                
-        # # create the file for the reservoirs geopackage and ensure the directory exists
-        # reservoirs_gpkg = base_path / "shapes" / "update_reservoirs.gpkg"
-        # if not reservoirs_gpkg.parent.exists():
-        #     reservoirs_gpkg.parent.mkdir(parents=True, exist_ok=True)
-
-        # # use the native processing algorithm to save the vector layer with resevoirs to a geopackage
-        # processing.run(
-        #     "native:savefeatures",
-        #     {
-        #         'INPUT': parameters[self.RESERVOIR_VECTOR],
-        #         'OUTPUT': str(reservoirs_gpkg)
-        #     }
-        # )
-        # feedback.pushInfo(f"Saved reservoirs to {reservoirs_gpkg}")
-        # # Create the required files
-        
-        # RESERVOIR_FN = "hydro_reservoirs" # TODO: parameterize this
-        # ini_file = base_path / "build_update_reservoirs.ini"
-        # with open(ini_file, "w") as f:
-        #     f.write("[setup_reservoirs]\n")
-        #     f.write(f"reservoirs_fn   = {RESERVOIR_FN} # source for reservoirs shape and attributes \n")  
-        #     f.write("min_area        = None             # minimum lake area to consider [km2]\n")
-        # yml_file = base_path / "data_catalog_update_reservoirs.yml"
-        # with open(yml_file, "w") as f:
-        #     lines = [
-        #         # f"root: {str(base_path)}\n",
-        #         # "meta:\n",
-        #         # "  version: '2023.11'\n",
-        #         # "\n",
-        #         f"{RESERVOIR_FN}:\n"
-        #         "  crs: 4326\n"
-        #         "  data_type: GeoDataFrame\n"
-        #         "  driver: vector\n"
-        #         "  filesystem: local\n"
-        #         f"  path: ./shapes/{reservoirs_gpkg.name}\n"
-        #         "  nodata: -99\n"
-        #     ]
-        #     f.writelines(lines)
-
-        # # Run the hydromt command to update the land use map
-        # process = subprocess.Popen(
-        #     [
-        #         Path(hydromt_wflow.__file__).parent.parent.parent / "Scripts" / "hydromt.exe",
-        #         "update",
-        #         "wflow",
-        #         str(Path(parameters[self.INPUT]).parent),
-        #         "-o", str(base_path),
-        #         "-i", str(ini_file),
-        #         "-d", str(yml_file),
-        #         "-vvv",
-        #     ],
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.STDOUT,
-        #     shell=True,
-        #     encoding='utf-8',
-        #     errors='replace'
-        # )
-        # while (realtime_output := process.stdout.readline()) != '' or process.poll() is None:
-        #     if realtime_output:
-        #         match = self.PROGRESS_REGEX.search(realtime_output)
-        #         if match:
-        #             feedback.setProgress(int(match.group(1)))
-        #         else:
-        #             feedback.pushInfo(realtime_output.strip())
+            # update model with reservoirs
+            model.setup_reservoirs_simple_control(reservoirs_fn=reservoirs_gpkg, min_area=0.0)
+            model.root.set(path=output_dir, mode="w")
+            model.write()
+        finally:
+            # Remove the handler to avoid duplicate logs in subsequent runs
+            hydromt_logger.removeHandler(handler)
 
         return {}

@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to QGIS",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "127.0.0.1",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/qgis_wflow",
+                    "remoteRoot": "${userHome}/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins/qgis_wflow"
+                }
+            ],
+            "justMyCode": true
+        }
+    ]
+}

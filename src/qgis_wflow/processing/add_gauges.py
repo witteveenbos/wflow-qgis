@@ -4,8 +4,7 @@ import subprocess
 import typing
 import logging
 from pathlib import Path
-from hydromt_wflow import WflowSbmModel
-from hydromt import log
+
 from ..functions.file_utils import path_from_feature_layer
 import geopandas as gpd
 
@@ -110,7 +109,8 @@ class AddGaugesAlgorithm(AlgorithmBase):
         # Deferred import to avoid crashing QGis when plugin is not loaded correctly. Users have to
         # install the required packages first.
         try:
-            import hydromt_wflow
+            from hydromt_wflow import WflowSbmModel
+            from hydromt import log
         except ImportError as e:
             feedback.reportError("Failed to import required libraries. Please run installer (Plugins->WFlow->Configuration)")
             return {}
@@ -146,92 +146,20 @@ class AddGaugesAlgorithm(AlgorithmBase):
             # read model
             model.read()
 
-            gauges_file, layer_name = path_from_feature_layer(gauge_vector.source())
-            # gauges_gpd = gpd.read_file(gauges_file, layer=layer_name)
-            # gauges_gpd.set_crs(epsg=4326)
-            
-            # Update landuse map
+            gauges_file = path_from_feature_layer(gauge_vector.source())
+   
+            # Add guages to model
             model.setup_gauges(
                 gauges_fn=gauges_file,
                 snap_to_river=True,
-                derive_subcatch=True,
+                derive_subcatch=True
             )
 
             # set root and write updated model
-            model.root.set(path=base_path, mode="w")
+            model.root.set(path=output_dir, mode="w")
             model.write()
         finally:
             # Remove the handler to avoid duplicate logs in subsequent runs
             hydromt_logger.removeHandler(handler)
-
-        # gauges = gauge_vector.getFeatures()
-        # # - print the gauges to a CSV file
-        # gauge_csv = base_path / "shapes" / "update_gauges.csv"
-        # if not gauge_csv.parent.exists():
-        #     gauge_csv.parent.mkdir(parents=True, exist_ok=True)
-        # with open(gauge_csv, "w") as f:
-        #     # write the header
-        #     f.write("fid,Name,x,y")
-        #     # write the data
-        #     for gauge_fid, gauge in enumerate(gauges, 2):
-        #         gauge_geom = gauge.geometry().asPoint()
-        #         f.write(f"\n{gauge_fid},{gauge[parameters[self.GAUGE_NAME_FIELD]]},{gauge_geom.x()},{gauge_geom.y()}")
-
-        # # Create the required files
-        # GAUGE_FN = re.sub(r'\W|^(?=\d)','_', parameters[self.BASE_NAME])
-        # # ini_file = base_path / "build_update_gauges.ini"
-        # # with open(ini_file, "w") as f:
-        # #     f.write("[setup_gauges]\n")
-        # #     f.write("index_col       = fid")
-        # #     f.write(f"gauges_fn        = {GAUGE_FN}\n")  
-        # #     f.write("snap_to_river   = True\n")  
-        # #     f.write("derive_subcatch = True\n")
-        # yml_file = base_path / "data_catalog_update_gauges.yml"
-        # with open(yml_file, "w") as f:
-        #     lines = [
-        #         f"root: {str(base_path)}\n",
-        #         "meta:\n",
-        #         "  version: '2023.11'\n",
-        #         "\n",
-        #         f"{GAUGE_FN}:\n"
-        #         "  crs: 4326\n"
-        #         "  data_type: GeoDataFrame\n"
-        #         "  driver: vector\n"
-        #         f"  path: ./shapes/{gauge_csv.name}\n"
-        #     ]
-        #     f.writelines(lines)
-        
-        # # Run the hydromt command to update the land use map
-        # process = subprocess.Popen(
-        #     [
-        #         Path(hydromt_wflow.__file__).parent.parent.parent / "Scripts" / "hydromt.exe",
-        #         "update",
-        #         "wflow",
-        #         str(Path(parameters[self.INPUT]).parent),
-        #         "-o", str(base_path),
-        #         "-c", "setup_gauges",
-        #         "--opt", f"gauges_fn={GAUGE_FN}",
-        #         "--opt", f"basename={GAUGE_FN}",
-        #         "--opt", f"snap_to_river={'True' if parameters[self.SNAP_TO_RIVER] else 'False'}",
-        #         "--opt", f"derive_subcatch={'True' if parameters[self.DERIVE_SUBCATCHMENTS] else 'False'}",
-        #         "--opt", "index_col=fid",
-        #         # "-i", str(ini_file),
-        #         "-d", str(yml_file),
-        #         "-vvv",
-        #     ],
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.STDOUT,
-        #     shell=True,
-        #     encoding='utf-8',
-        #     errors='replace'
-        # )
-        
-        # while (realtime_output := process.stdout.readline()) != '' or process.poll() is None:
-        #     if realtime_output:
-        #         match = self.PROGRESS_REGEX.search(realtime_output)
-        #         if match:
-        #             feedback.setProgress(int(match.group(1)))
-        #         else:
-        #             feedback.pushInfo(realtime_output.strip())
 
         return {}

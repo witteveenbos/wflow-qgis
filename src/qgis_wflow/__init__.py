@@ -61,7 +61,7 @@ class Plugin():
         # Initialize the plugin, make sure the stderr is redirected to logging
         # because hydromt_plugin has faulthandler enabled
         from qgis_wflow.functions.faulthandler import stderr_to_logging
-        # stderr_to_logging()
+        stderr_to_logging()
         # Processing
         self.provider = AutoProcessingProvider()
         # Dialogs / UI-based

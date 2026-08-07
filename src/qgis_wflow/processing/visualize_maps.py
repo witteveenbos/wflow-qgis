@@ -1,5 +1,6 @@
 import typing
 from pathlib import Path
+import tomllib
 
 from . import AlgorithmBase
 from ..functions.configuration import wflow_path
@@ -26,88 +27,86 @@ LULC_MAPS = [
 
 
 STATIC_MAPS = [
-    "wflow_ldd",
-    "wflow_uparea",
-    "wflow_streamorder",
-    "wflow_dem",
-    
-    "wflow_river",
-    "wflow_riverlength",
-    "RiverSlope",
-    "N_River",
-    "wflow_riverwidth",
-    "RiverDepth",
-    "wflow_landuse",
-    "Kext",
-    "N",
-    "PathFrac",
-    "RootingDepth",
-    "Sl",
-    "Swood",
-    "WaterFrac",
-    "alpha_h1",
-    
-    "thetaS",
-    "thetaR",
-    "SoilThickness",
-    "SoilMinThickness",
-    "c",
-    "KsatVer",
-    "KsatVer_2.5cm",
-    "KsatVer_10.0cm",
-    "KsatVer_22.5cm",
-    "KsatVer_45.0cm",
-    "KsatVer_80.0cm",
-    "KsatVer_150.0cm",
-    "M_original_",
-    "M_",
-    "f_",
-    "M_original",
-    "M",
-    "f",
-    "wflow_soil", 
-    "wflow_subcatch",
-    "Slope",
-    "LAI",
-    "wflow_gauges",
-    "KsatHorFrac",
-    "Cfmax",
     "cf_soil",
+    "Cfmax",
     "EoverR",
-    "InfiltCapPath",
-    "InfiltCapSoil",
-    "MaxLeakage",
-    "rootdistpar",
-    "TT",
-    "TTI",
-    "TTM",
-    "WHC",
     "G_Cfmax",
     "G_SIfrac",
     "G_TT",
-    "ResDemand",
-    "ResMaxRelease",
-    "ResMaxVolume",
-    "ResSimpleArea",
-    "ResTargetFullFrac",
-    "ResTargetMinFrac",
-    "wflow_reservoirareas",
-    "wflow_reservoirlocs",
+    "InfiltCapPath",
+    "InfiltCapSoil",
+    "KsatHorFrac",
+    "land_elevation",
+    "land_manning_n",
+    "land_slope",
+    "land_water_fraction",
+    "local_drain_direction",
+    "M_",
+    "M_original_",
+    "M_original",
+    "M",
+    "MaxLeakage",
+    "meta_landuse",
+    "meta_soil_texture", 
+    "meta_soilgrids_ksat_vertical_10.0cm",
+    "meta_soilgrids_ksat_vertical_150.0cm",
+    "meta_soilgrids_ksat_vertical_2.5cm",
+    "meta_soilgrids_ksat_vertical_22.5cm",
+    "meta_soilgrids_ksat_vertical_45.0cm",
+    "meta_soilgrids_ksat_vertical_80.0cm",
+    "meta_streamorder",
+    "meta_upstream_area",
+    "outlets",
+    "reservoir_area_id",
+    "reservoir_area",
+    "reservoir_demand",
+    "reservoir_max_release",
+    "reservoir_max_volume",
+    "reservoir_outlet_id",
+    "reservoir_target_full_fraction",
+    "reservoir_target_min_fraction",
+    "river_depth",
+    "river_length",
+    "river_manning_n",
+    "river_mask",
+    "river_slope",
+    "river_width",
+    "rootdistpar",
+    "soil_brooks_corey_c",
+    "soil_compated_fraction",
+    "soil_f_",
+    "soil_f",
+    "soil_ksat_vertical",
+    "soil_theta_r",
+    "soil_theta_s",
+    "soil_thickness",
+    "SoilMinThickness",
+    "subcatchment",
+    "TT",
+    "TTI",
+    "TTM",
+    "vegetation_feddes_alpha_h1",
+    "vegetation_kext",
+    "vegetation_leaf_area_index",
+    "vegetation_leaf_storage",
+    "vegetation_root_depth",
+    "vegetation_wood_storage",
+    "WHC",
 ]
 # dem landuse soil, subcatch slope LAI volgorde
 DEFAULT_STATIC_MAPS = [
-    "wflow_dem",
-    "wflow_landuse",
-    "wflow_soil",
-    "wflow_subcatch",
-    "Slope",
-    "LAI",
-    "N_River",
+    "land_elevation",
+    "meta_landuse",
+    "meta_soil_texture",
+    "subcatchment",
+    "land_slope",
+    "vegetation_leaf_area_index",
+    "river_manning_n",
 ]
 
-# gauges (allemaal), rivers, reservoirs, subcatch, basins, highres, region
-STATIC_GEOMS = ["gauges","rivers", "reservoirs", "subcatch", "basins", "basins_highres",  "region"]
-DEFAULT_STATIC_GEOMS = ["gauges","rivers","subcatch","basins"]
+# outlets (allemaal), rivers, reservoirs, subcatch, basins, highres, region
+STATIC_GEOMS = ["outlets","rivers", "reservoirs", "meta_reservoirs_simple_control", "subcatchment", "basins", "meta_basins_highres",  "region"]
+DEFAULT_STATIC_GEOMS = ["outlets","rivers","subcatchment","basins"]
 
 
 class LoadLayersAlgorithm(AlgorithmBase):
@@ -200,13 +199,11 @@ class LoadLayersAlgorithm(AlgorithmBase):
         feedback: typing.Optional[QgsProcessingFeedback],
     ) -> typing.Dict[str, typing.Any]:
 
-        try:
-            import toml
-        except ImportError:
-            feedback.reportError("Please configure wflow plugin to use this algorithm.")
-
         # Process the selected static maps
-        wflow_data = toml.load(parameters[self.INPUT])
+        # wflow_data = toml.load(parameters[self.INPUT])
+        with open(parameters[self.INPUT], 'r') as file:
+            file_content = file.read()
+        wflow_data = tomllib.loads(file_content)
 
         # Import static maps
         path_static_maps = (
@@ -245,7 +242,7 @@ class LoadLayersAlgorithm(AlgorithmBase):
             static_geoms = [
                 STATIC_GEOMS[geom_id] for geom_id in parameters[self.STATIC_GEOMS]
             ]
-            if "gauges" in static_geoms:
+            if "outlets" in static_geoms:
                 static_geoms.extend(
                     [
                         file.stem
@@ -253,8 +250,8 @@ class LoadLayersAlgorithm(AlgorithmBase):
                         if file.stem not in static_geoms
                     ]
                 )
-            if "subcatch" in static_geoms:
-                static_geoms.remove("subcatch")
+            if "subcatchment" in static_geoms:
+                static_geoms.remove("subcatchment")
                 static_geoms.extend(
                     [
                         file.stem
@@ -272,34 +269,48 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 )
                 layer.setName(static_geom)
 
-
                 QgsProject.instance().addMapLayer(layer, False)
                 group_geoms.addLayer(layer)
             
             # Apply styling to the static geometries if checkbox is clicked
             if parameters[self.APPLY_STYLING]:
+
                 # get directory of the plugin gives -> ../src/qgis_wflow/
                 current_dir = Path(__file__).parents[1].resolve()
                 
                 # get standard layers to style
+                feedback.pushInfo("Applying style for static maps")
                 for layer in group_maps.findLayers():
                     if layer.name() in DEFAULT_STATIC_MAPS:
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
                         #special case for land use layer
-                        if layer.name() == "wflow_landuse":
-                            style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"
+                        if layer.name() == "meta_landuse":
+                            if parameters[self.LULC_MAPPING] is not None:
+                                style_path = current_dir / f"resources/styles/{LULC_MAPS[parameters[self.LULC_MAPPING]]}_style.qml"
+                            else:
+                                feedback.pushWarning(" -- No LULC mapping selected")
+                                style_path = None
                         else:
                             # else the qmd file has the same name as the layer
                             style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
                         #apply the style to the layer only if the path to the qmd file exists
-                        if style_path.exists():
-                            layer.layer().loadNamedStyle(str(style_path))  
+                        if style_path and style_path.exists():
+                            layer.layer().loadNamedStyle(str(style_path))
                             layer.layer().triggerRepaint()
                             
                 # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
+                feedback.pushInfo("Applying style for static geoms")
                 for layer in group_geoms.findLayers():
                     if layer.name() in DEFAULT_STATIC_GEOMS:
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
                         style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
-                    if style_path.exists():
+                    elif "gauges_" in layer.name():
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
+                        style_path = current_dir / "resources/styles/outlets_style.qml"
+                    else:
+                        style_path = None
+
+                    if style_path and style_path.exists():
                         layer.layer().loadNamedStyle(str(style_path))
                         layer.layer().triggerRepaint()
         return {}

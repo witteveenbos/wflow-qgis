@@ -1,5 +1,5 @@
 import os
-import toml
+import tomllib
 from pathlib import Path
 
 import pandas as pd
@@ -70,8 +70,10 @@ class ResultViewer(QWidget, ResultViewerUI):
         else:
             return None
         # Read TOML-file
-        with open(toml_file, 'r') as f:
-            config = toml.load(f)
+        with open(toml_file, 'r') as file:
+            file_content = file.read()
+        config = tomllib.loads(file_content)
+
         if 'netcdf' in config:
             output_data = layer_path.parent.parent / f'./{config['dir_output']}/{config['netcdf']['path']}'
             df = xr.open_dataset(output_data).to_dataframe()

@@ -73,6 +73,7 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
         # install the required packages first.
         try:
             from hydromt_wflow import WflowSbmModel
+            from hydromt import log
             import xarray as xr
         except ImportError as e:
             feedback.reportError("Failed to import required libraries. Please run installer (Plugins->WFlow->Configuration)")
@@ -83,9 +84,10 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
         input_path = Path(parameters[self.INPUT])
         reservoir_layer = self.parameterAsVectorLayer(parameters, self.RESERVOIR_VECTOR, context)
 
-        output_dir = base_path / f"{input_path.stem}_v1_with_reservoirs"
-        os.makedirs(output_dir, exist_ok=True)
-
+        # Set up logging
+        log.initialize_logging(file_path=Path(f"{base_path}/logging.log"),
+                            level=10) # 10 is debug
+        
         handler = QgsFeedbackHandler(feedback)
         hydromt_logger = logging.getLogger("hydromt")
         hydromt_logger.setLevel(logging.INFO)
@@ -99,7 +101,7 @@ class UpdateReservoirsAlgorithm(AlgorithmBase):
 
             # update model with reservoirs
             model.setup_reservoirs_simple_control(reservoirs_fn=reservoirs_gpkg, min_area=0.0)
-            model.root.set(path=output_dir, mode="w")
+            model.root.set(path=base_path, mode="w")
             model.write()
         finally:
             # Remove the handler to avoid duplicate logs in subsequent runs

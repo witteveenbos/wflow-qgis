@@ -123,12 +123,8 @@ class AddGaugesAlgorithm(AlgorithmBase):
         # - load data from the vector layer
         gauge_vector = self.parameterAsVectorLayer(parameters, self.GAUGE_VECTOR, context)
 
-        # Create output dir
-        output_dir = base_path / f"{input_path.stem}_v1_with_gauges"
-        os.makedirs(output_dir, exist_ok=True)
-
-        # # Set up logging
-        log.initialize_logging(file_path=Path(f"{output_dir}/logging.log"),
+        # Set up logging
+        log.initialize_logging(file_path=Path(f"{base_path}/logging.log"),
                             level=10) # 10 is debug
 
         handler = QgsFeedbackHandler(feedback)
@@ -156,7 +152,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
             )
 
             # set root and write updated model
-            model.root.set(path=output_dir, mode="w")
+            model.root.set(path=base_path, mode="w")
             model.write()
         finally:
             # Remove the handler to avoid duplicate logs in subsequent runs

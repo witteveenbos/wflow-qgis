@@ -49,7 +49,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterRasterLayer(
                 self.BASE,
-                self.tr('Original slope layer')
+                self.tr('Original land_slope layer')
             )
         )
         # Vector layer that gives the areas where the slope should be adjusted

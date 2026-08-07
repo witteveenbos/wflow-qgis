@@ -49,7 +49,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
             QgsProcessingParameterRasterLayer(
                 self.BASE,
-                self.tr('Original N_River layer')
+                self.tr('Original river_manning_n layer')
             )
         )
         # Vector layer that gives the areas where check dams should be applied
@@ -65,7 +65,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         self.addParameter(
         QgsProcessingParameterNumber(
                 name=self.DAMS_FIELD,
-                description=self.tr('Factor to adjust N_River values'),
+                description=self.tr('Factor to adjust river_manning_n values'),
                 type=QgsProcessingParameterNumber.Double,
                 defaultValue=1.5, 
                 optional=True
@@ -194,7 +194,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         out_nc = target_folder / "staticmaps_with_check_dams.nc"
         shutil.copy2(orig_nc, out_nc)
         # Get the path to the N_river layer
-        nriver_subdataset = f'NETCDF:"{str(out_nc)}":N_River'
+        nriver_subdataset = f'NETCDF:"{str(out_nc)}":river_manning_n'
 
         # Read the adjust nriver data from the tif created in the previous step
         # Due to conversion between formats NoData needs to be explicitly determined and changed

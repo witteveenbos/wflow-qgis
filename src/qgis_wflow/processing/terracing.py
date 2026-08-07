@@ -195,7 +195,7 @@ class ApplyTerracingAlgorithm(AlgorithmBase):
         out_nc = target_folder / "staticmaps_with_terracing.nc"
         shutil.copy2(orig_nc, out_nc)
         # Get the path to the Slope layer
-        slope_subdataset = f'NETCDF:"{str(out_nc)}":Slope'
+        slope_subdataset = f'NETCDF:"{str(out_nc)}":land_slope'
 
         # Read the adjust slope data from the tif created in the previous step
         with gdal.Open(str(output_nc), gdal.GA_ReadOnly) as ds_slope:

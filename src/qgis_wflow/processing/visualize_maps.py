@@ -106,7 +106,8 @@ DEFAULT_STATIC_MAPS = [
 
 # outlets (allemaal), rivers, reservoirs, subcatch, basins, highres, region
 STATIC_GEOMS = ["outlets","rivers", "reservoirs", "meta_reservoirs_simple_control", "subcatchment", "basins", "meta_basins_highres",  "region"]
-DEFAULT_STATIC_GEOMS = ["outlets","rivers","subcatchment","basins"]
+DEFAULT_STATIC_GEOMS = ["outlets","rivers","basins"]
+STATIC_GEOM_STYLE = ["outlets","rivers","basins", "subcatchment", "reservoirs"]
 
 
 class LoadLayersAlgorithm(AlgorithmBase):
@@ -261,16 +262,19 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 )
             # - create the layers
             for static_geom in static_geoms:
-                feedback.pushInfo(f" - importing static map: {static_geom}.geojson")
-                layer = QgsVectorLayer(
-                    str(path_static_geoms / f"{static_geom}.geojson"),
-                    static_geom,
-                    "ogr",
-                )
-                layer.setName(static_geom)
+                if Path(path_static_geoms / f"{static_geom}.geojson").exists():
+                    feedback.pushInfo(f" - importing static map: {static_geom}.geojson")
+                    layer = QgsVectorLayer(
+                        str(path_static_geoms / f"{static_geom}.geojson"),
+                        static_geom,
+                        "ogr",
+                    )
+                    layer.setName(static_geom)
 
-                QgsProject.instance().addMapLayer(layer, False)
-                group_geoms.addLayer(layer)
+                    QgsProject.instance().addMapLayer(layer, False)
+                    group_geoms.addLayer(layer)
+                else:
+                    feedback.pushWarning(f" - {static_geom} selected by no geojson is found")
             
             # Apply styling to the static geometries if checkbox is clicked
             if parameters[self.APPLY_STYLING]:
@@ -301,12 +305,15 @@ class LoadLayersAlgorithm(AlgorithmBase):
                 # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
                 feedback.pushInfo("Applying style for static geoms")
                 for layer in group_geoms.findLayers():
-                    if layer.name() in DEFAULT_STATIC_GEOMS:
+                    if layer.name() in STATIC_GEOM_STYLE:
                         feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
                         style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
                     elif "gauges_" in layer.name():
                         feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
                         style_path = current_dir / "resources/styles/outlets_style.qml"
+                    elif "subcatchment_" in layer.name():
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
+                        style_path = current_dir / "resources/styles/subcatchment_sg_style.qml"
                     else:
                         style_path = None
 

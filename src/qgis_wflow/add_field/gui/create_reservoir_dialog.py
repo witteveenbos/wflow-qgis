@@ -13,7 +13,7 @@ from qgis.core import (
     QgsVectorLayer,
     QgsField,
     QgsProject,
-    QgsVectorFileWriter
+    QgsVectorFileWriter,
 )
 # Import the GUI of the dialog
 from .ui.ui_ChooseFile import Ui_chooseFile
@@ -53,18 +53,17 @@ class CreateReservoir(QDialog):
         # get all the layers from the input
         file_path = self.ui.mQgsFileWidget.filePath()
         crs = QgsProject.instance().crs()
+
         # first create virtual layer
         reservoir_layer = QgsVectorLayer(f"Polygon?crs={crs.authid()}", "Temporary reservoir layer", "memory")
         provider = reservoir_layer.dataProvider()
+
         # Add the attributes associated with the reseservoir to the virtual layer
         reservoir_layer.startEditing()
         provider.addAttributes([
             QgsField("fid", QMetaType.Int),
-            QgsField("Lake_name", QMetaType.QString),
-            QgsField("Country", QMetaType.QString),
-            QgsField("Continent", QMetaType.QString),
-            QgsField("reservoir_initial_depth", QMetaType.Double),
             QgsField("waterbody_id", QMetaType.Int),
+            QgsField("reservoir_initial_depth", QMetaType.Double),
             QgsField("reservoir_area", QMetaType.Double),
             QgsField("reservoir_max_volume", QMetaType.Double),
             QgsField("reservoir_target_min_fraction", QMetaType.Double),
@@ -74,6 +73,7 @@ class CreateReservoir(QDialog):
             QgsField("reservoir_rating_curve", QMetaType.Double),
             QgsField("reservoir_storage_curve", QMetaType.Double),
             ])
+
         reservoir_layer.commitChanges()
         
         # write the virtual layer to a file
@@ -83,9 +83,11 @@ class CreateReservoir(QDialog):
             QgsProject.instance().transformContext(),
             QgsVectorFileWriter.SaveVectorOptions()
         )
+        
         # Add the written layer to the project
         layer_name = os.path.splitext(os.path.basename(file_path))[0]
         written_layer = QgsVectorLayer(file_path, layer_name, "ogr")
         QgsProject.instance().addMapLayer(written_layer)
+
 
         self.accept()  # This closes the dialog

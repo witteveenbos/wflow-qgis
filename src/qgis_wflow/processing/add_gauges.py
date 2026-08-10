@@ -118,6 +118,7 @@ class AddGaugesAlgorithm(AlgorithmBase):
         # Get the base path of the updated wflow model
         base_path = Path(parameters[self.TARGET])
         input_path = Path(parameters[self.INPUT])
+        base_name = parameters[self.BASE_NAME]
 
         # Create a CSV file with the gauges
         # - load data from the vector layer
@@ -148,7 +149,8 @@ class AddGaugesAlgorithm(AlgorithmBase):
             model.setup_gauges(
                 gauges_fn=gauges_file,
                 snap_to_river=True,
-                derive_subcatch=True
+                derive_subcatch=True,
+                basename=base_name
             )
 
             # set root and write updated model

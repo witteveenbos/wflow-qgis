@@ -74,8 +74,8 @@ class ResultViewer(QWidget, ResultViewerUI):
             file_content = file.read()
         config = tomllib.loads(file_content)
 
-        if 'netcdf' in config:
-            output_data = layer_path.parent.parent / f'./{config['dir_output']}/{config['netcdf']['path']}'
+        if 'netcdf' in config["output"]:
+            output_data = layer_path.parent.parent / f'./{config['dir_output']}/{config["output"]['netcdf']['path']}'
             df = xr.open_dataset(output_data).to_dataframe()
             # Convert to wide format by unstacking if needed
             if df.index.nlevels > 1:
@@ -85,9 +85,10 @@ class ResultViewer(QWidget, ResultViewerUI):
                     df.columns = ['_'.join(map(str, col)).strip() for col in df.columns.values]
             # TODO: check what the column 'layer' means. At this moment we get the first layer only
             return df.groupby('time').first().reset_index()
-        elif 'csv' in config:
-            output_data = layer_path.parent.parent / f'./{config['dir_output']}/{config['csv']['path']}'
+        elif 'csv' in config["output"]:
+            output_data = layer_path.parent.parent / f'./{config['dir_output']}/{config["output"]['csv']['path']}'
             return pd.read_csv(output_data)
+
         else:
             return None
 
@@ -165,7 +166,7 @@ class ResultViewer(QWidget, ResultViewerUI):
             # Plot the main data
             trace = go.Scatter(
                 x=self.data['time'],
-                y=self.data[f'Q_{gauge["fid"]}'],
+                y=self.data[f'river_q_{gauge["fid"]}'],
                 mode='lines',
                 name=name,
                 line=dict(color=color),
@@ -185,7 +186,7 @@ class ResultViewer(QWidget, ResultViewerUI):
                 # Plot the comparison data if needed
                 trace_compare = go.Scatter(
                     x=self.compare_data['time'],
-                    y=self.compare_data[f'Q_{matching_gauge["fid"]}'],
+                    y=self.compare_data[f'river_q_{matching_gauge["fid"]}'],
                     mode='lines',
                     name=f'{name} (compare)',
                     line=dict(

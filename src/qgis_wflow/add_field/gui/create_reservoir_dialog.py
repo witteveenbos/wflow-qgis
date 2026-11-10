@@ -63,6 +63,7 @@ class CreateReservoir(QDialog):
         provider.addAttributes([
             QgsField("fid", QMetaType.Int),
             QgsField("waterbody_id", QMetaType.Int),
+            QgsField("lake_name", QMetaType.QString),
             QgsField("reservoir_initial_depth", QMetaType.Double),
             QgsField("reservoir_area", QMetaType.Double),
             QgsField("reservoir_max_volume", QMetaType.Double),

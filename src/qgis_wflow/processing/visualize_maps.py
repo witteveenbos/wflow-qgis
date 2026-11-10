@@ -206,31 +206,9 @@ class LoadLayersAlgorithm(AlgorithmBase):
             file_content = file.read()
         wflow_data = tomllib.loads(file_content)
 
-        # Import static maps
-        path_static_maps = (
-            Path(parameters[self.INPUT]).parent / wflow_data["input"]["path_static"]
-        )
-        if parameters[self.STATIC_MAPS]:
-            feedback.pushInfo(f"Importing static maps from {path_static_maps}")
-            # - create a group in the layer tree for the static maps
-            insertion_point = iface.layerTreeInsertionPoint().group
-            group_maps = insertion_point.addGroup("Static maps")
-            # - create the layers
-            for map_id in parameters[self.STATIC_MAPS]:
-                # NOTE: the layers are added using the QgsProject instance. This is required to set
-                # the name of the layer. The context.temporaryLayerStore() ignores the name of the layer
-                # and uses the name of the file instead.
-                feedback.pushInfo(f" - importing static map: {STATIC_MAPS[map_id]}")
-                layer = QgsRasterLayer(
-                    f'NETCDF:"{str(path_static_maps)}":{STATIC_MAPS[map_id]}',
-                    STATIC_MAPS[map_id],
-                )
-                crs = layer.crs()
-                crs.createFromId(4326)
-                layer.setCrs(crs)
-                layer.setName(STATIC_MAPS[map_id])
-                QgsProject.instance().addMapLayer(layer, False)
-                group_maps.addLayer(layer)
+        # get directory of the plugin gives -> ../src/qgis_wflow/
+        current_dir = Path(__file__).parents[1].resolve()
+
 
         # Import static geoms
         path_static_geoms = Path(parameters[self.INPUT]).parent / "staticgeoms"
@@ -275,13 +253,60 @@ class LoadLayersAlgorithm(AlgorithmBase):
                     group_geoms.addLayer(layer)
                 else:
                     feedback.pushWarning(f" - {static_geom} selected by no geojson is found")
-            
+
             # Apply styling to the static geometries if checkbox is clicked
             if parameters[self.APPLY_STYLING]:
+            
+                # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
+                feedback.pushInfo("Applying style for static geoms")
+                for layer in group_geoms.findLayers():
+                    if layer.name() in STATIC_GEOM_STYLE:
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
+                        style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
+                    elif "gauges_" in layer.name():
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
+                        style_path = current_dir / "resources/styles/outlets_style.qml"
+                    elif "subcatchment_" in layer.name():
+                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
+                        style_path = current_dir / "resources/styles/subcatchment_sg_style.qml"
+                    else:
+                        style_path = None
 
-                # get directory of the plugin gives -> ../src/qgis_wflow/
-                current_dir = Path(__file__).parents[1].resolve()
-                
+                    if style_path and style_path.exists():
+                        layer.layer().loadNamedStyle(str(style_path))
+                        layer.layer().triggerRepaint()
+
+        # Import static maps
+        if parameters[self.STATIC_MAPS]:
+            
+            path_static_maps = (
+                Path(parameters[self.INPUT]).parent / wflow_data["input"]["path_static"]
+            )
+            
+            feedback.pushInfo(f"Importing static maps from {path_static_maps}")
+            # - create a group in the layer tree for the static maps
+            insertion_point = iface.layerTreeInsertionPoint().group
+            group_maps = insertion_point.addGroup("Static maps")
+            # - create the layers
+            for map_id in parameters[self.STATIC_MAPS]:
+                # NOTE: the layers are added using the QgsProject instance. This is required to set
+                # the name of the layer. The context.temporaryLayerStore() ignores the name of the layer
+                # and uses the name of the file instead.
+                feedback.pushInfo(f" - importing static map: {STATIC_MAPS[map_id]}")
+                layer = QgsRasterLayer(
+                    f'NETCDF:"{str(path_static_maps)}":{STATIC_MAPS[map_id]}',
+                    STATIC_MAPS[map_id],
+                )
+                crs = layer.crs()
+                crs.createFromId(4326)
+                layer.setCrs(crs)
+                layer.setName(STATIC_MAPS[map_id])
+                QgsProject.instance().addMapLayer(layer, False)
+                group_maps.addLayer(layer)
+
+            # Apply styling to the static geometries if checkbox is clicked
+            if parameters[self.APPLY_STYLING]:
+                            
                 # get standard layers to style
                 feedback.pushInfo("Applying style for static maps")
                 for layer in group_maps.findLayers():
@@ -301,25 +326,6 @@ class LoadLayersAlgorithm(AlgorithmBase):
                         if style_path and style_path.exists():
                             layer.layer().loadNamedStyle(str(style_path))
                             layer.layer().triggerRepaint()
-                            
-                # do the same for the geojson static geometries (@peter is the repetition of the code here acceptable or should I write a seperate function)
-                feedback.pushInfo("Applying style for static geoms")
-                for layer in group_geoms.findLayers():
-                    if layer.name() in STATIC_GEOM_STYLE:
-                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
-                        style_path = current_dir / f"resources/styles/{layer.name()}_style.qml"
-                    elif "gauges_" in layer.name():
-                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
-                        style_path = current_dir / "resources/styles/outlets_style.qml"
-                    elif "subcatchment_" in layer.name():
-                        feedback.pushInfo(f" - Applying style for layer: {layer.name()}")
-                        style_path = current_dir / "resources/styles/subcatchment_sg_style.qml"
-                    else:
-                        style_path = None
-
-                    if style_path and style_path.exists():
-                        layer.layer().loadNamedStyle(str(style_path))
-                        layer.layer().triggerRepaint()
         return {}
 
 
